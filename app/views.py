@@ -4,11 +4,17 @@ import requests
 from os import environ  
 import datetime
 from schedule import today_sch, tomorrow_sch, week_sch
+import sys
+sys.path.append('..')
+from parser.main import parse_schedule
 
 ####
 @app.route('/<string:group>/today', methods=["GET"])
 def today(group):
-    res = {'schedule': today_sch(group)}
+    sch = today_sch(group)
+    if len(sch.split(" "))<2:
+        sch = "Такой группы не существует"
+    res = {'schedule': sch}
     response = jsonify(res)
     # return "today for{} is {}".format(group, res)
     return make_response(response)
@@ -27,3 +33,8 @@ def week(group):
     response = jsonify(res)
     # return "week for{} is {}".format(group, res)
     return make_response(response)
+
+@app.route('/refresh')
+def refresh():
+    parse_schedule()
+    return make_response({})
