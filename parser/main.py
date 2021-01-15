@@ -5,6 +5,7 @@ import sys
 import os.path
 import json
 
+
 def parse_schedule():
     global Downloader
     try:
