@@ -28,12 +28,13 @@ time_zone = None
 
 def cur_week(today):
     if today.month<8:
-        first = date(today.year, 9, 1)
+        first = date(today.year, 2, 9)
     else: 
-        first = date(today.year-1, 9, 1)
+        first = date(today.year, 9, 1)
     today_iso = today.isocalendar()
     first_iso = first.isocalendar()
     week = today_iso[1] - first_iso[1]
+    
     if not (first_iso[2] == 7):
         week+=1
     return week
@@ -87,6 +88,7 @@ def format_lesson(record, day_of_week, week, today):
 
 def return_one_day(today, group):
     week = cur_week(today)
+    print(week)
     cursor = connect_to_sqlite()
     day_of_week = today.isocalendar()[2]
     if(day_of_week==7):

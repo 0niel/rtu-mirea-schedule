@@ -10,6 +10,9 @@ from bs4 import BeautifulSoup
 import ssl
 import certifi
 
+import shutil
+
+
 
 class Downloader:
     def __init__(self, path_to_error_log='errors/downloadErrorLog.csv', base_file_dir='xls/', except_types=[]):
@@ -27,6 +30,7 @@ class Downloader:
             else:
                 print("При установке пакета возникла ошибка! {}".format(exit_code))
                 exit(0)
+
 
         self.url = 'https://www.mirea.ru/schedule/'
         self.path_to_error_log = path_to_error_log
@@ -46,6 +50,7 @@ class Downloader:
         :param package: название пакета (str)
         :return: код завершения процесса (int) или текст ошибки (str)
         """
+        
         try:
             result = subprocess.check_call(['pip', 'install', package])
         except subprocess.CalledProcessError as result:
@@ -70,17 +75,29 @@ class Downloader:
                         if chunk:
                             f.write(chunk)
 
+        if "зима" in path or "лето" in path or "зач" in path or "экз" in path:
+            return "skip"
+
         if os.path.isfile(path):
+            
             old_file_size = os.path.getsize(path)
             new_file_size = len(requests.get(url).content)
             if old_file_size != new_file_size:
-                download(url, path)
-                return "download"
+                try:
+                    download(url, path)
+                    return "download"
+                except:
+                    return "skip"
             else:
                 return "skip"
         else:
-            download(url, path)
-            return "download"
+            try:
+                download(url, path)
+                return "download"
+            except:
+                return "skip"
+            
+            
 
     def get_dir(self, file_name):
         for dir_name in self.download_dir:
@@ -110,6 +127,8 @@ class Downloader:
             subdir = ''
             file_name = subdir + divided_path[1]
             try:
+                if "зима" in file_name or "лето" in file_name:
+                    continue
                 if os.path.splitext(file_name)[1].replace('.', '') in self.file_type and "заоч" not in os.path.splitext(file_name)[0].replace('.', ''):
                     subdir = self.get_dir(file_name)
                     path_to_file = os.path.join(self.base_file_dir, subdir, file_name)

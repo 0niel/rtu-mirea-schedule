@@ -73,9 +73,7 @@ class Reader:
         }
 
         self.doc_type_list = {
-            'semester': 0,
-            'zach': 1,
-            'exam': 2
+            'semester': 0
         }
 
         self.days_dict = {
@@ -160,11 +158,16 @@ class Reader:
         self.connect_to_db = sqlite3.connect(self.db_file)
 
         for path, dirs, files in os.walk(xlsx_dir):
+            
             for file_name in files:
+                if "зима" in file_name or "лето" in file_name:
+                    continue
                 path_to_xlsx_file = os.path.join(path, file_name)
+                print(path_to_xlsx_file)
                 xlsx_doc_type = get_doc_type_code(os.path.dirname(os.path.relpath(path_to_xlsx_file, start='xls')))
 
                 try:
+                    
                     self.read(path_to_xlsx_file, xlsx_doc_type, write_to_json_file=write_to_json_file,
                               write_to_csv_file=write_to_csv_file, write_to_db=write_to_db,
                               write_to_new_db=write_to_new_db)
@@ -224,7 +227,6 @@ class Reader:
             initial_row_num = group_name_row_index + 1  # Номер строки, с которой начинается отсчет пар
             lesson_count = 0  # Счетчик количества пар
             # Перебор столбца с номерами пар и вычисление на основании количества пар в день диапазона выбора ячеек
-
             day_num_val, lesson_num_val, lesson_time_val, lesson_week_num_val = 0, 0, 0, 0
             for lesson_num in range(initial_row_num, len(xlsx_sheet.col(group_name_row.index(group_name_cell)))):
 
