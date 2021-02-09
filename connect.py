@@ -1,7 +1,7 @@
 import sqlite3
 import os
+from parser_f.parse import parse_schedule
 
- 
 def connect_to_sqlite():
     try:
         basedir = os.path.abspath(os.path.dirname(__file__))
@@ -11,8 +11,10 @@ def connect_to_sqlite():
         sqlite_select_Query = "select sqlite_version();"
         cursor.execute(sqlite_select_Query)
         record = cursor.fetchall()
+
     except sqlite3.Error as error:
         print("Ошибка при подключении к sqlite", error)
+
     return cursor
 if __name__ == "__main__":
     connect_to_sqlite()

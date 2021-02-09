@@ -30,6 +30,7 @@ template = {
 }
 
 app = Flask(__name__)
+
 app.config['SWAGGER'] = {
     'title': 'My API',
     'uiversion': 3,
@@ -37,6 +38,7 @@ app.config['SWAGGER'] = {
 }
 swagger = Swagger(app, template= template)
 app.config.from_object(config.Config)
+
 
 from app import views
 
