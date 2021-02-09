@@ -11,7 +11,6 @@ def connect_to_sqlite():
         sqlite_select_Query = "select sqlite_version();"
         cursor.execute(sqlite_select_Query)
         record = cursor.fetchall()
-        print("Версия базы данных SQLite: ", record)
     except sqlite3.Error as error:
         print("Ошибка при подключении к sqlite", error)
     return cursor

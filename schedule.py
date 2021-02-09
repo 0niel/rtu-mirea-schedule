@@ -89,7 +89,6 @@ def format_lesson(record, day_of_week, week, today):
 
 def return_one_day(today, group):
     week = cur_week(today)
-    print(week)
     try:
         cursor = connect_to_sqlite()
     except:
@@ -114,7 +113,6 @@ def return_one_day(today, group):
                         order by schedule_calls.call_id"
     cursor.execute(sqlite_select_Query, {'group':group, 'day':day_of_week, 'week':current_week})
     record = cursor.fetchall()
-    print ('mew = ', record)
     cursor.close()
     if len(record):
         return format_lesson(record, day_of_week, week, today)
