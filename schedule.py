@@ -3,6 +3,7 @@ import pprint
 import datetime as dt
 from datetime import datetime, date, time
 import re
+from schedule_parser.main import parse_schedule
 
 days_of_week = {
     1: 'Понедельник',
@@ -89,7 +90,11 @@ def format_lesson(record, day_of_week, week, today):
 def return_one_day(today, group):
     week = cur_week(today)
     print(week)
-    cursor = connect_to_sqlite()
+    try:
+        cursor = connect_to_sqlite()
+    except:
+        parse_schedule()
+        cursor = connect_to_sqlite()
     day_of_week = today.isocalendar()[2]
     if(day_of_week==7):
         return ""
