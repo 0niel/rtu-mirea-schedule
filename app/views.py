@@ -14,6 +14,11 @@ from schedule_parser.main import parse_schedule
 def today(group):
     """Today's schedule for requested group
     ---
+    parameters:
+      - name: group
+        in: path
+        type: string
+        required: true
 
     responses:
       200:
@@ -41,6 +46,12 @@ def tomorrow(group):
     """Tomorrow's schedule for requested group
     ---
 
+    parameters:
+      - name: group
+        in: path
+        type: string
+        required: true
+
     responses:
       200:
         description: Return string with tomorrow\'s schedule, split by \\n
@@ -60,9 +71,15 @@ def week(group):
     """Week's schedule for requested group
     ---
 
+    parameters:
+      - name: group
+        in: path
+        type: string
+        required: true
+
     responses:
       200:
-        description: Return \'ok\' after updating
+        description: Return string with week\'s schedule, split by \\n
         schema:
           type: object
           properties:
@@ -81,7 +98,7 @@ def refresh():
 
     responses:
       200:
-        description: String with Week\'s schedule, split by \\n
+        description: Return \'ok\' after updating
         schema:
           type: object
           properties:
