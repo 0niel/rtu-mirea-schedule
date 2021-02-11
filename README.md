@@ -15,4 +15,4 @@ Run container
 
 App running on ```http://0.0.0.0:5000/ ```
 
-You can find api on ```http://0.0.0.0:5000/swagger ```
+You can find api on ```http://localhost:5000/swagger/ ```

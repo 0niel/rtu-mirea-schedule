@@ -6,23 +6,23 @@ import re
 from schedule_parser.main import parse_schedule
 
 days_of_week = {
-    1: 'Понедельник',
-    2: 'Вторник',
-    3: 'Среда',
-    4: 'Четверг',
-    5: 'Пятница',
-    6: 'Суббота',
-    7: 'Воскресенье'
+    1: 'monday',
+    2: 'tuesday',
+    3: 'wednesday',
+    4: 'thursday',
+    5: 'friday',
+    6: 'saturday',
+    7: 'sunday'
 }
 
 rings = {
-    1: '9:00-10:30',
-    2: '10:40-12:10',
-    3: '12:40-14:10',
-    4: '14:20-15:50',
-    5: '16:20-17:50',
-    6: '18:00-19:30',
-    7: '19:40-21:10'
+    1: {"start": '9:00', "end": '10:30'},
+    2: {"start": '10:40', "end": '12:10'},
+    3: {"start": '12:40', "end": '14:10'},
+    4: {"start": '14:20', "end": '15:50'},
+    5: {"start": '16:20', "end": '17:50'},
+    6: {"start": '18:00', "end": '19:30'},
+    7: {"start": '19:40', "end": '21:10'},
 }
 
 time_zone = None
@@ -50,7 +50,7 @@ def format_lesson(record, day_of_week, week, today):
         if "кр." in less:
             exc = less.split("н.")[0]
             less = less.split("н.")[1].strip()
-            regex_num = re.compile('\d+')  
+            regex_num = re.compile('\d+')
             weeks = [int(item) for item in regex_num.findall(exc)] 
             print (exc, '  --  ', less, '  --  ',lesson, '  --  ', weeks)
             if "-" in exc:

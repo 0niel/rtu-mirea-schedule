@@ -10,7 +10,7 @@ sys.path.append('..')
 from schedule_parser.main import parse_schedule
 
 ####
-@app.route('/<string:group>/today', methods=["GET"])
+@app.route('/api/schedule/<string:group>/today', methods=["GET"])
 def today(group):
     """Today's schedule for requested group
     ---
@@ -41,7 +41,7 @@ def today(group):
     return make_response(response)
 
 #############
-@app.route('/<string:group>/tomorrow', methods=["GET"])
+@app.route('/api/schedule/<string:group>/tomorrow', methods=["GET"])
 def tomorrow(group):
     """Tomorrow's schedule for requested group
     ---
@@ -66,7 +66,7 @@ def tomorrow(group):
     # return "tomorrow for{} is {}".format(group, res)
     return make_response(response)
 
-@app.route('/<string:group>/week', methods=["GET"])
+@app.route('/api/schedule/<string:group>/week', methods=["GET"])
 def week(group):
     """Week's schedule for requested group
     ---

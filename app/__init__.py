@@ -5,13 +5,13 @@ from flasgger import Swagger, swag_from
 template = {
   "swagger": "2.0",
   "info": {
-    "title": "Flask Restful Swagger Demo",
-    "description": "A Demof for the Flask-Restful Swagger Demo",
+    "title": "SCHEDULE-RTU",
+    "description": "API for getting schedule for RTU MIREA",
     "version": "0.1.1",
-    "contact": {
-      "name": "Kanoki",
-      "url": "https://Kanoki.org",
-    }
+    # "contact": {
+    #   "name": "Kanoki",
+    #   "url": "https://Kanoki.org",
+    # }
   },
   "securityDefinitions": {
     "Bearer": {
