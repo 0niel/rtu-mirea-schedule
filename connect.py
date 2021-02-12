@@ -10,8 +10,7 @@ def connect_to_sqlite():
         #print("База данных создана и успешно подключена к SQLite")
         sqlite_select_Query = "select sqlite_version();"
         cursor.execute(sqlite_select_Query)
-        record = cursor.fetchall()
-
+        
     except sqlite3.Error as error:
         print("Ошибка при подключении к sqlite", error)
 

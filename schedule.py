@@ -5,16 +5,6 @@ from datetime import datetime, date, time
 import re
 from schedule_parser.main import parse_schedule
 
-days_of_week = {
-    1: 'monday',
-    2: 'tuesday',
-    3: 'wednesday',
-    4: 'thursday',
-    5: 'friday',
-    6: 'saturday',
-    7: 'sunday'
-}
-
 rings = {
     1: {"start": '9:00', "end": '10:30'},
     2: {"start": '10:40', "end": '12:10'},
@@ -41,64 +31,91 @@ def cur_week(today):
     return week
 
 def format_lesson(record, day_of_week, week, today):
-    formatted_str = '\n' + days_of_week[day_of_week] + " " + str(today.day) + "." + str(today.month)
     day = [{
         "time" : {"start": '9:00', "end": '10:30'},
+        "lesson": "null"
     }, {
         "time" : {"start": '10:40', "end": '12:10'},
+        "lesson": "null"
     }, {
         "time" : {"start": '12:40', "end": '14:10'},
+        "lesson": "null"
     }, {
         "time" :{"start": '14:20', "end": '15:50'} ,
+        "lesson": "null"
     }, {
         "time" : {"start": '16:20', "end": '17:50'},
+        "lesson": "null"
     }, {
         "time" : {"start": '18:00', "end": '19:30'},
+        "lesson": "null"
     }, { 
-        "time" : {"start": '19:40', "end": '21:10'}
+        "time" : {"start": '19:40', "end": '21:10'},
+        "lesson": "null"
     }]
     for lesson in record:
+        res_lesson = {}
         typ = lesson[3].split()
         typ.append('')
         less = lesson[2] 
         if "кр." in less:
             exc = less.split("н.")[0]
             less = less.split("н.")[1].strip()
-            regex_num = re.compile('\d+')
+            regex_num = re.compile(r'\d+')
             weeks = [int(item) for item in regex_num.findall(exc)] 
             print (exc, '  --  ', less, '  --  ',lesson, '  --  ', weeks)
             if "-" in exc:
                 
                 if not (weeks[0]<=week and week <= weeks[1]):
-                    formatted_str+= "\n\n{0} пара ({4}, {1}) \n{2} {3}".format(lesson[0], rings[lesson[0]], less, typ[0], lesson[4])
+                    res_lesson["classRoom"] = lesson[4]
+                    res_lesson["teacher"] = lesson[5]
+                    res_lesson["name"] = less
+                    res_lesson["type"] = typ[0]
+                    day[lesson[0]-1]["lesson"] = res_lesson
+                    print(res_lesson)
 
             else:
 
                 if not (week in weeks):
-                    
-                    formatted_str+= "\n\n{0} пара ({4}, {1}) \n{2} {3}".format(lesson[0], rings[lesson[0]], less, typ[0], lesson[4])
+                    res_lesson["classRoom"] = lesson[4]
+                    res_lesson["teacher"] = lesson[5]
+                    res_lesson["name"] = less
+                    res_lesson["type"] = typ[0]
+                    day[lesson[0]-1]["lesson"] = res_lesson
 
         elif "н." in less:
             exc = less.split("н.")[0]
             less = less.split("н.")[1].strip()
-            regex_num = re.compile('\d+')  
+            regex_num = re.compile(r'\d+')  
             weeks = [int(item) for item in regex_num.findall(exc)]
 
             if "-" in exc:
                 
                 if (weeks[0]<=week and week <= weeks[1]):
-                    formatted_str+= "\n\n{0} пара ({4}, {1}) \n{2} {3}".format(lesson[0], rings[lesson[0]], less, typ[0], lesson[4])
+                    res_lesson["classRoom"] = lesson[4]
+                    res_lesson["teacher"] = lesson[5]
+                    res_lesson["name"] = less
+                    res_lesson["type"] = typ[0]
+                    day[lesson[0]-1]["lesson"] = res_lesson
 
             else:
                 if (week in weeks):
-                    formatted_str+= "\n\n{0} пара ({4}, {1}) \n{2} {3}".format(lesson[0], rings[lesson[0]], less, typ[0], lesson[4])
+                    res_lesson["classRoom"] = lesson[4]
+                    res_lesson["teacher"] = lesson[5]
+                    res_lesson["name"] = less
+                    res_lesson["type"] = typ[0]
+                    day[lesson[0]-1]["lesson"] = res_lesson
 
         else:
-            formatted_str+= "\n\n{0} пара ({4}, {1}) \n{2} {3}".format(lesson[0], rings[lesson[0]], less, typ[0], lesson[4])
+            res_lesson["classRoom"] = lesson[4]
+            res_lesson["teacher"] = lesson[5]
+            res_lesson["name"] = less
+            res_lesson["type"] = typ[0]
+            day[lesson[0]-1]["lesson"] = res_lesson
+            print(res_lesson)
 
         
-    formatted_str += "\n" + "="*30
-    return formatted_str
+    return day
 
 
 def return_one_day(today, group):
@@ -128,28 +145,25 @@ def return_one_day(today, group):
     cursor.execute(sqlite_select_Query, {'group':group, 'day':day_of_week, 'week':current_week})
     record = cursor.fetchall()
     cursor.close()
-    if len(record):
-        return format_lesson(record, day_of_week, week, today)
-    return '\n' + days_of_week[day_of_week] + " " + str(today.day) + "." + str(today.month) + "\nНет пар\n" + "="*30
+    return format_lesson(record, day_of_week, week, today)
 
 
 def today_sch(group):
     today = datetime.now(tz=time_zone)
-    formatted_str = "="*30
-    return formatted_str + return_one_day(today, group)
+    return return_one_day(today, group)
     
 def tomorrow_sch(group): 
     today = datetime.now(tz=time_zone) + dt.timedelta(days=1)
-    formatted_str = "="*30
-    return formatted_str + return_one_day(today, group)
+    return return_one_day(today, group)
 
 def week_sch(group): 
     today = datetime.now(tz=time_zone)
     day_of_week = today.isocalendar()[2]
-    formatted_str = "="*30
+    days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+    res = {}
     for i in range(6):
         today = datetime.now(tz=time_zone) + dt.timedelta(days=i-day_of_week+1)
-        formatted_str += return_one_day(today, group)
-    return formatted_str
+        res[days[i]] = return_one_day(today, group)
+    return res
 
 
