@@ -1,5 +1,5 @@
 from app import app
-from flask import Flask, flash, request, redirect, url_for, session, jsonify, render_template, make_response
+from flask import Flask, flash, request, redirect, url_for, session, jsonify, render_template, make_response, Response
 import requests
 from os import environ  
 import datetime
@@ -33,12 +33,14 @@ def today(group):
     """
 
     sch = today_sch(group)
-    if len(sch.split(" "))<2:
-        sch = "Такой группы не существует"
-    res = {'schedule': sch}
-    response = jsonify(res)
-    # return "today for{} is {}".format(group, res)
-    return make_response(response)
+    if sch:
+      if len(sch.split(" "))<2:
+          sch = "Такой группы не существует"
+      res = {'schedule': sch}
+      response = jsonify(res)
+      # return "today for{} is {}".format(group, res)
+      return make_response(response)
+    return make_response("Retry after", 503)
 
 #############
 @app.route('/api/schedule/<string:group>/tomorrow', methods=["GET"])

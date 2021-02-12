@@ -92,7 +92,7 @@ def return_one_day(today, group):
     try:
         cursor = connect_to_sqlite()
     except:
-        parse_schedule()
+        return None
         cursor = connect_to_sqlite()
     day_of_week = today.isocalendar()[2]
     if(day_of_week==7):
@@ -122,12 +122,22 @@ def return_one_day(today, group):
 def today_sch(group):
     today = datetime.now(tz=time_zone)
     formatted_str = "="*30
-    return formatted_str + return_one_day(today, group)
+    record = return_one_day(today, group)
+    if record:
+        formatted_str += record
+    else:
+        return None
+    return formatted_str
     
 def tomorrow_sch(group): 
     today = datetime.now(tz=time_zone) + dt.timedelta(days=1)
     formatted_str = "="*30
-    return formatted_str + return_one_day(today, group)
+    record = return_one_day(today, group)
+    if record:
+        formatted_str += record
+    else:
+        return None
+    return formatted_str
 
 def week_sch(group): 
     today = datetime.now(tz=time_zone)
@@ -135,7 +145,11 @@ def week_sch(group):
     formatted_str = "="*30
     for i in range(6):
         today = datetime.now(tz=time_zone) + dt.timedelta(days=i-day_of_week+1)
-        formatted_str += return_one_day(today, group)
+        record = return_one_day(today, group)
+        if record:
+            formatted_str += record
+        else:
+            return None
     return formatted_str
 
 
