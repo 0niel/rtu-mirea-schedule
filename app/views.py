@@ -34,13 +34,12 @@ def today(group):
 
     sch = today_sch(group)
     if sch:
-      if len(sch.split(" "))<2:
-          sch = "Такой группы не существует"
       res = {'schedule': sch}
       response = jsonify(res)
       # return "today for{} is {}".format(group, res)
       return make_response(response)
-    return make_response("Retry after", 503)
+    res = Response(headers={'Retry-After':80}, status=503)
+    return res 
 
 #############
 @app.route('/api/schedule/<string:group>/tomorrow', methods=["GET"])
@@ -64,10 +63,13 @@ def tomorrow(group):
               type: string
     """
     res = {'schedule': tomorrow_sch(group)}
-    response = jsonify(res)
-    # return "tomorrow for{} is {}".format(group, res)
-    return make_response(response)
-
+    if res:
+      response = jsonify(res)
+      # return "tomorrow for{} is {}".format(group, res)
+      return make_response(response)
+    res = Response(headers={'Retry-After':80}, status=503)
+    return res 
+    
 @app.route('/api/schedule/<string:group>/week', methods=["GET"])
 def week(group):
     """Week's schedule for requested group
@@ -89,9 +91,12 @@ def week(group):
               type: string
     """
     res = {'schedule': week_sch(group)}
-    response = jsonify(res)
-    # return "week for{} is {}".format(group, res)
-    return make_response(response)
+    if res:
+      response = jsonify(res)
+      # return "tomorrow for{} is {}".format(group, res)
+      return make_response(response)
+    res = Response(headers={'Retry-After':100}, status=503)
+    return res 
 
 @app.route('/refresh', methods=["POST"])
 def refresh():

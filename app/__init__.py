@@ -34,7 +34,7 @@ app = Flask(__name__)
 app.config['SWAGGER'] = {
     'title': 'My API',
     'uiversion': 3,
-    "specs_route": "/swagger/"
+    "specs_route": "/api/schedule/swagger/"
 }
 swagger = Swagger(app, template= template)
 app.config.from_object(config.Config)
