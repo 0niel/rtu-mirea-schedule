@@ -165,5 +165,3 @@ def week_sch(group):
         today = datetime.now(tz=time_zone) + dt.timedelta(days=i-day_of_week+1)
         res[days[i]] = return_one_day(today, group)
     return res
-
-

@@ -19,23 +19,48 @@ def today(group):
         in: path
         type: string
         required: true
-
+      
+    definitions:
+      Lesson:
+        type: object
+        nullable: true
+        properties:
+          lesson:
+            type: object
+            properties:
+              classRoom: 
+                type: string
+              name: 
+                type: string
+              teacher: 
+                type: string
+              type: 
+                type: string
+            
+          time:
+            type: object
+            properties:
+              start: 
+                type: string
+              end: 
+                type: string
     responses:
       200:
-        description: Return string with today\'s schedule, split by \\n
+        description: Return today\'s schedule. There are 8 lessons on a day. "lesson":null, if there is no pair 
         schema:
-          type: object
-          properties:
-            schedule:
-              type: string
-        examples:
-          rgb: ['red', 'green', 'blue']
+          type: array
+          items:
+            $ref: '#/definitions/Lesson'
+          minItems: 8
+          maxItems: 8
+            
+      503:
+          description: Retry-After:100
     """
 
     sch = today_sch(group)
     if sch:
-      res = {'schedule': sch}
-      response = jsonify(res)
+      response = jsonify(sch)
       # return "today for{} is {}".format(group, res)
       return make_response(response)
     res = Response(headers={'Retry-After':80}, status=503)
@@ -44,9 +69,8 @@ def today(group):
 #############
 @app.route('/api/schedule/<string:group>/tomorrow', methods=["GET"])
 def tomorrow(group):
-    """Tomorrow's schedule for requested group
+    """Today's schedule for requested group
     ---
-
     parameters:
       - name: group
         in: path
@@ -55,14 +79,18 @@ def tomorrow(group):
 
     responses:
       200:
-        description: Return string with tomorrow\'s schedule, split by \\n
+        description: Return tomorrow\'s schedule. There are 8 lessons on a day. "lesson":null, if there is no pair 
         schema:
-          type: object
-          properties:
-            schedule:
-              type: string
+          type: array
+          items:
+            $ref: '#/definitions/Lesson'
+          minItems: 8
+          maxItems: 8
+            
+      503:
+          description: Retry-After:100
     """
-    res = {'schedule': tomorrow_sch(group)}
+    res = tomorrow_sch(group)
     if res:
       response = jsonify(res)
       # return "tomorrow for{} is {}".format(group, res)
@@ -72,25 +100,30 @@ def tomorrow(group):
     
 @app.route('/api/schedule/<string:group>/week', methods=["GET"])
 def week(group):
-    """Week's schedule for requested group
+    """Today's schedule for requested group
     ---
-
     parameters:
       - name: group
         in: path
         type: string
         required: true
-
+      
     responses:
       200:
-        description: Return string with week\'s schedule, split by \\n
+        description: Return tomorrow\'s schedule. There are 8 lessons on a day. "lesson":null, if there is no pair.
         schema:
           type: object
           properties:
-            schedule:
-              type: string
+            monday:
+              items:
+                $ref: '#/definitions/Lesson'
+              minItems: 8
+              maxItems: 8
+            
+      503:
+          description: Retry-After:100
     """
-    res = {'schedule': week_sch(group)}
+    res =  week_sch(group)
     if res:
       response = jsonify(res)
       # return "tomorrow for{} is {}".format(group, res)
