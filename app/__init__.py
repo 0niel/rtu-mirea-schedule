@@ -5,13 +5,13 @@ from flasgger import Swagger, swag_from
 template = {
   "swagger": "2.0",
   "info": {
-    "title": "Flask Restful Swagger Demo",
-    "description": "A Demof for the Flask-Restful Swagger Demo",
+    "title": "SCHEDULE-RTU",
+    "description": "API for getting schedule for RTU MIREA",
     "version": "0.1.1",
-    "contact": {
-      "name": "Kanoki",
-      "url": "https://Kanoki.org",
-    }
+    # "contact": {
+    #   "name": "Kanoki",
+    #   "url": "https://Kanoki.org",
+    # }
   },
   "securityDefinitions": {
     "Bearer": {
@@ -34,7 +34,7 @@ app = Flask(__name__)
 app.config['SWAGGER'] = {
     'title': 'My API',
     'uiversion': 3,
-    "specs_route": "/swagger/"
+    "specs_route": "/api/schedule/swagger/"
 }
 swagger = Swagger(app, template= template)
 app.config.from_object(config.Config)

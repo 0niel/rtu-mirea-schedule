@@ -1,5 +1,5 @@
 from app import app
-from flask import Flask, flash, request, redirect, url_for, session, jsonify, render_template, make_response
+from flask import Flask, flash, request, redirect, url_for, session, jsonify, render_template, make_response, Response
 import requests
 from os import environ  
 import datetime
@@ -10,8 +10,65 @@ sys.path.append('..')
 from schedule_parser.main import parse_schedule
 
 ####
-@app.route('/<string:group>/today', methods=["GET"])
+@app.route('/api/schedule/<string:group>/today', methods=["GET"])
 def today(group):
+    """Today's schedule for requested group
+    ---
+    parameters:
+      - name: group
+        in: path
+        type: string
+        required: true
+      
+    definitions:
+      Lesson:
+        type: object
+        nullable: true
+        properties:
+          lesson:
+            type: object
+            properties:
+              classRoom: 
+                type: string
+              name: 
+                type: string
+              teacher: 
+                type: string
+              type: 
+                type: string
+            
+          time:
+            type: object
+            properties:
+              start: 
+                type: string
+              end: 
+                type: string
+    responses:
+      200:
+        description: Return today\'s schedule. There are 8 lessons on a day. "lesson":null, if there is no pair 
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/Lesson'
+          minItems: 8
+          maxItems: 8
+            
+      503:
+          description: Retry-After:100
+    """
+
+    sch = today_sch(group)
+    if sch:
+      response = jsonify(sch)
+      # return "today for{} is {}".format(group, res)
+      return make_response(response)
+    res = Response(headers={'Retry-After':80}, status=503)
+    return res 
+
+#############
+@app.route('/api/schedule/<string:group>/tomorrow', methods=["GET"])
+def tomorrow(group):
     """Today's schedule for requested group
     ---
     parameters:
@@ -22,74 +79,57 @@ def today(group):
 
     responses:
       200:
-        description: Return string with today\'s schedule, split by \\n
+        description: Return tomorrow\'s schedule. There are 8 lessons on a day. "lesson":null, if there is no pair 
         schema:
-          type: object
-          properties:
-            schedule:
-              type: string
-        examples:
-          rgb: ['red', 'green', 'blue']
+          type: array
+          items:
+            $ref: '#/definitions/Lesson'
+          minItems: 8
+          maxItems: 8
+            
+      503:
+          description: Retry-After:100
     """
-
-    sch = today_sch(group)
-    if len(sch.split(" "))<2:
-        sch = "Такой группы не существует"
-    res = {'schedule': sch}
-    response = jsonify(res)
-    # return "today for{} is {}".format(group, res)
-    return make_response(response)
-
-#############
-@app.route('/<string:group>/tomorrow', methods=["GET"])
-def tomorrow(group):
-    """Tomorrow's schedule for requested group
-    ---
-
-    parameters:
-      - name: group
-        in: path
-        type: string
-        required: true
-
-    responses:
-      200:
-        description: Return string with tomorrow\'s schedule, split by \\n
-        schema:
-          type: object
-          properties:
-            schedule:
-              type: string
-    """
-    res = {'schedule': tomorrow_sch(group)}
-    response = jsonify(res)
-    # return "tomorrow for{} is {}".format(group, res)
-    return make_response(response)
-
-@app.route('/<string:group>/week', methods=["GET"])
+    res = tomorrow_sch(group)
+    if res:
+      response = jsonify(res)
+      # return "tomorrow for{} is {}".format(group, res)
+      return make_response(response)
+    res = Response(headers={'Retry-After':80}, status=503)
+    return res 
+    
+@app.route('/api/schedule/<string:group>/week', methods=["GET"])
 def week(group):
-    """Week's schedule for requested group
+    """Today's schedule for requested group
     ---
-
     parameters:
       - name: group
         in: path
         type: string
         required: true
-
+      
     responses:
       200:
-        description: Return string with week\'s schedule, split by \\n
+        description: Return week\'s schedule. There are 8 lessons on a day. "lesson":null, if there is no pair.
         schema:
           type: object
           properties:
-            schedule:
-              type: string
+            monday:
+              items:
+                $ref: '#/definitions/Lesson'
+              minItems: 8
+              maxItems: 8
+            
+      503:
+          description: Retry-After:100
     """
-    res = {'schedule': week_sch(group)}
-    response = jsonify(res)
-    # return "week for{} is {}".format(group, res)
-    return make_response(response)
+    res =  week_sch(group)
+    if res:
+      response = jsonify(res)
+      # return "tomorrow for{} is {}".format(group, res)
+      return make_response(response)
+    res = Response(headers={'Retry-After':100}, status=503)
+    return res 
 
 @app.route('/refresh', methods=["POST"])
 def refresh():
