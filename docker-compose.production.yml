@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  api:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.30'
+          memory: 100M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
