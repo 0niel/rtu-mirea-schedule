@@ -7,3 +7,7 @@ services:
     - 5000:5000
   refresh_invoker:
     build: ./refresh_invoker
+  proxy:
+    build: ./proxy
+    ports:
+    - 5001:5001
