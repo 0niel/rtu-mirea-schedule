@@ -16,3 +16,10 @@ Run container
 App running on ```http://0.0.0.0:5000/```
 
 You can find api on ```http://localhost:5000/api/schedule/swagger/ ```
+
+## Deploy
+
+Run next command to generate swarm stack file
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.production.yml config | sed "s/[0-9]\+\.[0-9]\+$/'\0'/g" >| stack.yml
+```
