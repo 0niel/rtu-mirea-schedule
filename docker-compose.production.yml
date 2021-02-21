@@ -2,6 +2,8 @@ version: '3.8'
 
 services:
   api:
+    networks:
+      - net
     deploy:
       resources:
         limits:
@@ -13,6 +15,8 @@ services:
         max-size: "200k"
         max-file: "10"
   refresh_invoker:
+    networks:
+      - net
     deploy:
       resources:
         limits:
@@ -24,6 +28,8 @@ services:
         max-size: "200k"
         max-file: "10"
   proxy:
+    networks:
+      - net
     deploy:
       resources:
         limits:
@@ -34,3 +40,7 @@ services:
       options:
         max-size: "200k"
         max-file: "10"
+
+networks:
+  net:
+    driver: overlay
