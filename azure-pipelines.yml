@@ -33,3 +33,50 @@ stages:
         tags: |
           $(Build.BuildId)
           latest
+- stage: UpdateServices
+  jobs:
+  - deployment: DeployApi
+    pool:
+      vmImage: 'ubuntu-latest'
+    environment: production
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - download: none
+            - task: SSH@0
+              inputs:
+                sshEndpoint: 'swarm manager'
+                runOptions: 'commands'
+                commands: 'docker service update --image rtuitlab/schedule-rtu-api:$(Build.BuildId) schedule-rtu_api'
+                readyTimeout: '20000'
+  - deployment: DeployRefreshInvoker
+    pool:
+      vmImage: 'ubuntu-latest'
+    environment: production
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - download: none
+            - task: SSH@0
+              inputs:
+                sshEndpoint: 'swarm manager'
+                runOptions: 'commands'
+                commands: 'docker service update --image rtuitlab/schedule-rtu-refresh-invoker:$(Build.BuildId) schedule-rtu_refresh_invoker'
+                readyTimeout: '20000'
+  - deployment: DeployProxy
+    pool:
+      vmImage: 'ubuntu-latest'
+    environment: production
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - download: none
+            - task: SSH@0
+              inputs:
+                sshEndpoint: 'swarm manager'
+                runOptions: 'commands'
+                commands: 'docker service update --image rtuitlab/schedule-rtu-proxy:$(Build.BuildId) schedule-rtu_proxy'
+                readyTimeout: '20000'
