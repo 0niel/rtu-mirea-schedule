@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  api:
+    networks:
+      - net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.30'
+          memory: 100M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+  refresh_invoker:
+    networks:
+      - net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.10'
+          memory: 30M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+  proxy:
+    networks:
+      - net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.30'
+          memory: 100M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+
+networks:
+  net:
+    driver: overlay

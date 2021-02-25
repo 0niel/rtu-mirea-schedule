@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  api:
+    image: rtuitlab/schedule-rtu-api
+  refresh_invoker:
+    image: rtuitlab/schedule-rtu-refresh-invoker
+  proxy:
+    image: rtuitlab/schedule-rtu-proxy

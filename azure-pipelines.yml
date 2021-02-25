@@ -1,0 +1,34 @@
+trigger:
+  - master
+
+name: $(BuildID)-$(Build.SourceBranchName)
+
+pool:
+  vmImage: "ubuntu-latest"
+
+- stage: dockerImage
+  condition: ${{variables.buildImage}}
+  jobs:
+  - job: dockerBuild
+    strategy:
+      matrix:
+        api:
+          imageName: rtuitlab/schedule-rtu-api
+          buildContext: './'
+        refresh_invoker:
+          imageName: rtuitlab/schedule-rtu-refresh-invoker
+          buildContext: './refresh_invoker'
+        proxy:
+          imageName: rtuitlab/schedule-rtu-proxy
+          buildContext: './proxy'
+    steps:
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'rtuitlab connection by admin'
+        repository: $(imageName)
+        command: 'buildAndPush'
+        Dockerfile: '$(buildContext)/Dockerfile'
+        buildContext: '$(buildContext)'
+        tags: |
+          $(Build.BuildId)
+          latest
