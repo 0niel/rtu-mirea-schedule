@@ -6,6 +6,7 @@ name: $(BuildID)-$(Build.SourceBranchName)
 pool:
   vmImage: "ubuntu-latest"
 
+stages:
 - stage: dockerImage
   condition: ${{variables.buildImage}}
   jobs:
