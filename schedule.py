@@ -83,9 +83,13 @@ def format_lesson(record, day_of_week, week, today):
                     res_lesson["type"] = typ[0]
                     day[lesson[0]-1]["lesson"] = res_lesson
 
-        elif "н." in less:
-            exc = less.split("н.")[0]
-            less = less.split("н.")[1].strip()
+        elif "н." in less or " н " in less:
+            if "н." in less:
+                exc = less.split("н.")[0]
+                less = less.split("н.")[1].strip()
+            elif " н " in less:
+                exc = less.split(" н ")[0]
+                less = less.split(" н ")[1].strip()
             regex_num = re.compile(r'\d+')  
             weeks = [int(item) for item in regex_num.findall(exc)]
 
@@ -158,6 +162,16 @@ def tomorrow_sch(group):
 
 def week_sch(group): 
     today = datetime.now(tz=time_zone)
+    day_of_week = today.isocalendar()[2]
+    days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+    res = {}
+    for i in range(6):
+        today = datetime.now(tz=time_zone) + dt.timedelta(days=i-day_of_week+1)
+        res[days[i]] = return_one_day(today, group)
+    return res
+
+def next_week_sch(group):
+    today = datetime.now(tz=time_zone+7)
     day_of_week = today.isocalendar()[2]
     days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
     res = {}

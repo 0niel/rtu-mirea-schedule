@@ -3,7 +3,7 @@ from flask import Flask, flash, request, redirect, url_for, session, jsonify, re
 import requests
 from os import environ  
 import datetime
-from schedule import today_sch, tomorrow_sch, week_sch
+from schedule import today_sch, tomorrow_sch, week_sch, next_week_sch
 import sys
 
 sys.path.append('..')
@@ -100,7 +100,7 @@ def tomorrow(group):
     
 @app.route('/api/schedule/<string:group>/week', methods=["GET"])
 def week(group):
-    """Today's schedule for requested group
+    """Current week's schedule for requested group
     ---
     parameters:
       - name: group
@@ -124,6 +124,39 @@ def week(group):
           description: Retry-After:100
     """
     res =  week_sch(group)
+    if res:
+      response = jsonify(res)
+      # return "tomorrow for{} is {}".format(group, res)
+      return make_response(response)
+    res = Response(headers={'Retry-After':100}, status=503)
+    return res 
+
+@app.route('/api/schedule/<string:group>/next_week', methods=["GET"])
+def next_week(group):
+    """Next week's schedule for requested group
+    ---
+    parameters:
+      - name: group
+        in: path
+        type: string
+        required: true
+      
+    responses:
+      200:
+        description: Return week\'s schedule. There are 8 lessons on a day. "lesson":null, if there is no pair.
+        schema:
+          type: object
+          properties:
+            monday:
+              items:
+                $ref: '#/definitions/Lesson'
+              minItems: 8
+              maxItems: 8
+            
+      503:
+          description: Retry-After:100
+    """
+    res =  next_week_sch(group)
     if res:
       response = jsonify(res)
       # return "tomorrow for{} is {}".format(group, res)
