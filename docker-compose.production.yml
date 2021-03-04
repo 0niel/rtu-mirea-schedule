@@ -4,6 +4,8 @@ services:
   api:
     networks:
       - net
+    environment:
+      TZ: 'Europe/Moscow'
     deploy:
       resources:
         limits:
