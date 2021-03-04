@@ -63,7 +63,6 @@ def format_lesson(record, day_of_week, week, today):
             less = less.split("н.")[1].strip()
             regex_num = re.compile(r'\d+')
             weeks = [int(item) for item in regex_num.findall(exc)] 
-            print (exc, '  --  ', less, '  --  ',lesson, '  --  ', weeks)
             if "-" in exc:
                 
                 if not (weeks[0]<=week and week <= weeks[1]):
@@ -72,7 +71,6 @@ def format_lesson(record, day_of_week, week, today):
                     res_lesson["name"] = less
                     res_lesson["type"] = typ[0]
                     day[lesson[0]-1]["lesson"] = res_lesson
-                    print(res_lesson)
 
             else:
 
@@ -116,7 +114,6 @@ def format_lesson(record, day_of_week, week, today):
             res_lesson["name"] = less
             res_lesson["type"] = typ[0]
             day[lesson[0]-1]["lesson"] = res_lesson
-            print(res_lesson)
 
         
     return day
@@ -171,11 +168,11 @@ def week_sch(group):
     return res
 
 def next_week_sch(group):
-    today = datetime.now(tz=time_zone+7)
+    today = datetime.now(tz=time_zone) + dt.timedelta(days=7)
     day_of_week = today.isocalendar()[2]
     days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
     res = {}
     for i in range(6):
-        today = datetime.now(tz=time_zone) + dt.timedelta(days=i-day_of_week+1)
+        today = datetime.now(tz=time_zone) + dt.timedelta(days=i-day_of_week+1) + dt.timedelta(days=7)
         res[days[i]] = return_one_day(today, group)
     return res

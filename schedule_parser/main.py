@@ -11,6 +11,8 @@ def parse_schedule():
     try:
         Download = Downloader(path_to_error_log='logs/downloadErrorLog.csv', base_file_dir='xls/')
         Download.download()
+        # os.remove("xls/semester/.DS_Store")
+        # os.remove("xls/.DS_Store")
         print("downloaded")
         try:
             reader = Reader(path_to_db="table.db")
@@ -24,4 +26,4 @@ def parse_schedule():
         print("Ошибка! Не найден файл шаблона 'template.xlsx' или файлы исходного расписания")
 
     except Exception as err:
-        print(err, "!\n")
+        print("Ошибка открытия файла!\n")

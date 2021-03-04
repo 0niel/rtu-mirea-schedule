@@ -164,6 +164,8 @@ class Reader:
                     continue
                 path_to_xlsx_file = os.path.join(path, file_name)
                 print(path_to_xlsx_file)
+                if("ИКиб_маг_2к" in path_to_xlsx_file):
+                    continue
                 xlsx_doc_type = get_doc_type_code(os.path.dirname(os.path.relpath(path_to_xlsx_file, start='xls')))
 
                 try:
@@ -173,10 +175,6 @@ class Reader:
                               write_to_new_db=write_to_new_db)
                 except Exception as err:
                     print(err, traceback.format_exc(), "in", file_name)
-                    with open(self.log_file_path, 'a+') as log_file:
-                        log_file.write(
-                            str(datetime.datetime.now()) + ': ' + str(path_to_xlsx_file) + ' message: ' + str(
-                                traceback.format_exc()) + '\n')
                     continue
 
     def read(self, xlsx_path, doc_type, write_to_json_file=False, write_to_csv_file=False, write_to_db=False,
@@ -228,9 +226,14 @@ class Reader:
             lesson_count = 0  # Счетчик количества пар
             # Перебор столбца с номерами пар и вычисление на основании количества пар в день диапазона выбора ячеек
             day_num_val, lesson_num_val, lesson_time_val, lesson_week_num_val = 0, 0, 0, 0
-            for lesson_num in range(initial_row_num, len(xlsx_sheet.col(group_name_row.index(group_name_cell)))):
+            row_s = len(xlsx_sheet.col(group_name_row.index(group_name_cell)))
+            if row_s >= 200:
+                row_s = 122
+                
+            for lesson_num in range(initial_row_num, row_s):
 
                 day_num_col = xlsx_sheet.cell(lesson_num, group_name_row.index(group_name_cell) - 5)
+                
                 if day_num_col.value != '':
                     day_num_val = get_day_num(day_num_col.value)
 
@@ -263,7 +266,6 @@ class Reader:
                 if re.findall(r'\d+:\d+', str(lesson_time_val), flags=re.A):
                     lesson_range = (lesson_num_val, lesson_time_val, lesson_week_num_val, lesson_string_index)
                     week_range[day_num_val].append(lesson_range)
-
             return week_range
 
         def get_column_range_for_type_eq_exam(xlsx_sheet, group_name_cell, group_name_row_index):
@@ -304,8 +306,11 @@ class Reader:
             date_range = []
             # Перебор столбца с номерами пар и вычисление на основании количества пар в день диапазона выбора ячеек
             date_num_val, month_num_val = None, None
-
-            for day_num in range(initial_row_nam, len(xlsx_sheet.col(group_name_row.index(group_name_cell)))):
+            row_s = len(xlsx_sheet.col(group_name_row.index(group_name_cell)))
+            if row_s >= 200:
+                row_s = 122
+                
+            for day_num in range(initial_row_nam, row_s):
 
                 month_num_col = xlsx_sheet.cell(day_num, group_name_row.index(group_name_cell) - 2)
                 if month_num_col.value != '':
@@ -339,10 +344,8 @@ class Reader:
 
             return date_range_dict
 
-        print(xlsx_path)
-        book = xlrd.open_workbook(xlsx_path)
+        book = xlrd.open_workbook(xlsx_path, on_demand = True)
         sheet = book.sheet_by_index(0)
-
         DOC_TYPE_EXAM = 2
         column_range = []
         timetable = {}
@@ -351,7 +354,10 @@ class Reader:
         # Индекс строки с названиями групп
         group_name_row_num = 1
         # Поиск строки, содержащей названия групп
-        for row_index in range(len(sheet.col(1))):
+        leng = len(sheet.col(1))
+        if leng > 200:
+            leng = 122
+        for row_index in range(leng):
             group_name_row = sheet.row_values(row_index)
             if len(group_name_row) > 0:
                 group_row_str = " ".join(str(x) for x in group_name_row)
@@ -361,6 +367,7 @@ class Reader:
                     break
 
         group_name_row = sheet.row(group_name_row_num)
+        
         for group_cell in group_name_row:  # Поиск названий групп
             group = str(group_cell.value)
             group = re.search(r'([А-Я]+-\w+-\w+)', group)
@@ -392,6 +399,8 @@ class Reader:
             self.write_to_csv_and_old_db(doc_type, timetable, write_to_csv_file, write_to_db)
         if write_to_new_db is not False:
             self.write_to_db(doc_type, timetable, write_to_db)
+        book.release_resources()
+        del book
         return group_list
 
     @staticmethod
@@ -775,8 +784,7 @@ class Reader:
         """Запись словаря 'timetable' в JSON файл
             timetable(dict)
         """
-        with open(self.json_file, "a", encoding="utf-8") as fh:
-            fh.write(json.dumps(timetable, ensure_ascii=False, indent=4))
+
 
     def read_one_group_for_semester(self, sheet, discipline_col_num, group_name_row_num, cell_range):
         """
