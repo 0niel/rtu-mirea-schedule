@@ -207,8 +207,7 @@ def secret_refresh():
       if secret == SECRET_FOR_REFRESH:
         parse_schedule()
         return make_response({"status": 'ok'})
-      else:
-        return make_response({"status": 'wrong_password'})
+      return make_response({"status": 'wrong_password'}, 401)
     except:
       return make_response({"status": 'need_password'})
     
