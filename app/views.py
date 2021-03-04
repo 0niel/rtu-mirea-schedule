@@ -180,3 +180,35 @@ def refresh():
     """
     parse_schedule()
     return make_response({"status": 'ok'})
+
+@app.route('/api/schedule/secret_refresh', methods=["POST"])
+def secret_refresh():
+    """Refresh shedule
+    ---
+
+    parameters:
+        - in: header
+          name: X-Auth-Token
+          type: string
+          required: true
+
+    responses:
+      200:
+        description: Return \'ok\' after updating
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+    """
+    try:
+      secret = request.headers.get('X-Auth-Token')
+      SECRET_FOR_REFRESH = environ.get('SECRET_FOR_REFRESH')
+      if secret == SECRET_FOR_REFRESH:
+        parse_schedule()
+        return make_response({"status": 'ok'})
+      else:
+        return make_response({"status": 'wrong_password'})
+    except:
+      return make_response({"status": 'need_password'})
+    
