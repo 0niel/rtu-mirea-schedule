@@ -63,7 +63,6 @@ def format_lesson(record, day_of_week, week, today):
             less = less.split("н.")[1].strip()
             regex_num = re.compile(r'\d+')
             weeks = [int(item) for item in regex_num.findall(exc)] 
-            print (exc, '  --  ', less, '  --  ',lesson, '  --  ', weeks)
             if "-" in exc:
                 
                 if not (weeks[0]<=week and week <= weeks[1]):
@@ -72,7 +71,6 @@ def format_lesson(record, day_of_week, week, today):
                     res_lesson["name"] = less
                     res_lesson["type"] = typ[0]
                     day[lesson[0]-1]["lesson"] = res_lesson
-                    print(res_lesson)
 
             else:
 
@@ -83,9 +81,13 @@ def format_lesson(record, day_of_week, week, today):
                     res_lesson["type"] = typ[0]
                     day[lesson[0]-1]["lesson"] = res_lesson
 
-        elif "н." in less:
-            exc = less.split("н.")[0]
-            less = less.split("н.")[1].strip()
+        elif "н." in less or " н " in less:
+            if "н." in less:
+                exc = less.split("н.")[0]
+                less = less.split("н.")[1].strip()
+            elif " н " in less:
+                exc = less.split(" н ")[0]
+                less = less.split(" н ")[1].strip()
             regex_num = re.compile(r'\d+')  
             weeks = [int(item) for item in regex_num.findall(exc)]
 
@@ -112,7 +114,6 @@ def format_lesson(record, day_of_week, week, today):
             res_lesson["name"] = less
             res_lesson["type"] = typ[0]
             day[lesson[0]-1]["lesson"] = res_lesson
-            print(res_lesson)
 
         
     return day
@@ -122,30 +123,31 @@ def return_one_day(today, group):
     week = cur_week(today)
     try:
         cursor = connect_to_sqlite()
+        day_of_week = today.isocalendar()[2]
+        if(day_of_week==7):
+            return ""
+        if (week%2):
+            current_week = 1
+        else:
+            current_week = 2
+        sqlite_select_Query = "SELECT schedule_calls.call_id, lessons.call_time, discipline_name, lesson_types.lesson_type_name, room_num, teacher_name  \
+                            FROM lessons\
+                            Join disciplines ON discipline_id = discipline\
+                            Join schedule_calls ON call_id = call_num\
+                            Join rooms On room_id = room\
+                            JOIN teachers On teacher = teacher_id\
+                            JOIN groups on group_id = group_num\
+                            JOIN lesson_types on lesson_type_id = lesson_type\
+                            WHERE groups.group_name = :group AND day = :day AND week = :week \
+                            order by schedule_calls.call_id"
+        cursor.execute(sqlite_select_Query, {'group':group, 'day':day_of_week, 'week':current_week})
+        record = cursor.fetchall()
+        cursor.close()
+        return format_lesson(record, day_of_week, week, today)
     except:
-        parse_schedule()
-        cursor = connect_to_sqlite()
-    day_of_week = today.isocalendar()[2]
-    if(day_of_week==7):
-        return ""
-    if (week%2):
-        current_week = 1
-    else:
-        current_week = 2
-    sqlite_select_Query = "SELECT schedule_calls.call_id, lessons.call_time, discipline_name, lesson_types.lesson_type_name, room_num, teacher_name  \
-                        FROM lessons\
-                        Join disciplines ON discipline_id = discipline\
-                        Join schedule_calls ON call_id = call_num\
-                        Join rooms On room_id = room\
-                        JOIN teachers On teacher = teacher_id\
-                        JOIN groups on group_id = group_num\
-                        JOIN lesson_types on lesson_type_id = lesson_type\
-                        WHERE groups.group_name = :group AND day = :day AND week = :week \
-                        order by schedule_calls.call_id"
-    cursor.execute(sqlite_select_Query, {'group':group, 'day':day_of_week, 'week':current_week})
-    record = cursor.fetchall()
-    cursor.close()
-    return format_lesson(record, day_of_week, week, today)
+        print("No database")
+        return None
+    
 
 
 def today_sch(group):
@@ -163,5 +165,23 @@ def week_sch(group):
     res = {}
     for i in range(6):
         today = datetime.now(tz=time_zone) + dt.timedelta(days=i-day_of_week+1)
-        res[days[i]] = return_one_day(today, group)
+        day = return_one_day(today, group)
+        if day:
+            res[days[i]] = day
+        else:
+            return None
+    return res
+
+def next_week_sch(group):
+    today = datetime.now(tz=time_zone) + dt.timedelta(days=7)
+    day_of_week = today.isocalendar()[2]
+    days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+    res = {}
+    for i in range(6):
+        today = datetime.now(tz=time_zone) + dt.timedelta(days=i-day_of_week+1) + dt.timedelta(days=7)
+        day = return_one_day(today, group)
+        if day:
+            res[days[i]] = day
+        else:
+            return None
     return res
