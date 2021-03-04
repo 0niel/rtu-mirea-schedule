@@ -63,7 +63,7 @@ def today(group):
       response = jsonify(sch)
       # return "today for{} is {}".format(group, res)
       return make_response(response)
-    res = Response(headers={'Retry-After':80}, status=503)
+    res = Response(headers={'Retry-After':200}, status=503)
     return res 
 
 #############
@@ -95,7 +95,7 @@ def tomorrow(group):
       response = jsonify(res)
       # return "tomorrow for{} is {}".format(group, res)
       return make_response(response)
-    res = Response(headers={'Retry-After':80}, status=503)
+    res = Response(headers={'Retry-After':200}, status=503)
     return res 
     
 @app.route('/api/schedule/<string:group>/week', methods=["GET"])
@@ -128,7 +128,7 @@ def week(group):
       response = jsonify(res)
       # return "tomorrow for{} is {}".format(group, res)
       return make_response(response)
-    res = Response(headers={'Retry-After':100}, status=503)
+    res = Response(headers={'Retry-After':200}, status=503)
     return res 
 
 @app.route('/api/schedule/<string:group>/next_week', methods=["GET"])
@@ -161,7 +161,7 @@ def next_week(group):
       response = jsonify(res)
       # return "tomorrow for{} is {}".format(group, res)
       return make_response(response)
-    res = Response(headers={'Retry-After':100}, status=503)
+    res = Response(headers={'Retry-After':200}, status=503)
     return res 
 
 @app.route('/refresh', methods=["POST"])

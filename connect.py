@@ -1,6 +1,5 @@
 import sqlite3
 import os
-from schedule_parser.main import parse_schedule
 
 def connect_to_sqlite():
     try:
