@@ -3,7 +3,7 @@ from flask import Flask, flash, request, redirect, url_for, session, jsonify, re
 import requests
 from os import environ  
 import datetime
-from schedule import today_sch, tomorrow_sch, week_sch, next_week_sch
+from schedule import today_sch, tomorrow_sch, week_sch, next_week_sch, get_groups
 import sys
 
 sys.path.append('..')
@@ -129,7 +129,18 @@ def week(group):
       # return "tomorrow for{} is {}".format(group, res)
       return make_response(response)
     res = Response(headers={'Retry-After':200}, status=503)
-    return res 
+    return res
+
+@app.route('/api/schedule/get_groups', methods=["GET"])
+def groups(): 
+    res =  get_groups()
+    if res:
+      response = jsonify(res)
+      # return "tomorrow for{} is {}".format(group, res)
+      return make_response(response)
+    res = Response(headers={'Retry-After':200}, status=503)
+    return res
+
 
 @app.route('/api/schedule/<string:group>/next_week', methods=["GET"])
 def next_week(group):
