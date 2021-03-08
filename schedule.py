@@ -158,8 +158,35 @@ def get_groups():
         cursor.execute(sqlite_select_Query)
         record = cursor.fetchall()
         cursor.close()
+        m = []
+        b = []
+        a = []
+        m_courses = {}
+        b_courses = {}
+        max_year = 0
         for group in record:
-            print(group[0])
+            group = group[0]
+            print(group)
+            max_year = max(max_year, int(group[-2]+group[-1]))
+        
+
+        for group in record:
+            group = group[0]
+            if group[2] == "М":
+                course = max_year - int(group[-2]+group[-1]) + 1
+                if group[:4] in res["master"][course]:
+                        res["master"][course][group[:4]].append(int(group[5:7]))  
+                else:
+                    res["master"][course][group[:4]] = [int(group[5:7])] 
+            elif group[2] == "Б":
+                course = max_year - int(group[-2]+group[-1]) + 1
+                if group[:4] in res["bachelor"][course]:
+                        res["bachelor"][course][group[:4]].append(int(group[5:7]))  
+                else:
+                    res["bachelor"][course][group[:4]] = [int(group[5:7])] 
+            else:
+                a.append(group)
+        print(res)
         return res
     except:
         print("No database")

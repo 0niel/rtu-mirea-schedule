@@ -132,14 +132,64 @@ def week(group):
     return res
 
 @app.route('/api/schedule/get_groups', methods=["GET"])
-def groups(): 
-    res =  get_groups()
-    if res:
-      response = jsonify(res)
-      # return "tomorrow for{} is {}".format(group, res)
-      return make_response(response)
-    res = Response(headers={'Retry-After':200}, status=503)
-    return res
+def groups():
+  """Next week's schedule for requested group
+    ---
+      
+    responses:
+      200:
+        description: Return week\'s schedule. There are 8 lessons on a day. "lesson":null, if there is no pair.
+        schema:
+          type: object
+          properties:
+            bachelor:
+              type: object
+              properties:
+                1:
+                  type: object
+                  properties:
+                    ИАБО:
+                      type: array
+                      items:
+                        type: integer
+                        minimum: 1
+                      uniqueItems: true
+                    ИВБО:
+                      type: array
+                      items:
+                        type: integer
+                        minimum: 1
+                        default: 1
+                      uniqueItems: true
+                2:
+                3:
+                  type: object
+                  properties:
+                4:
+                  type: object
+                  properties:
+            master:
+              type: object
+              properties:
+                1:
+                  type: object
+                  properties:
+                2:
+                  type: object
+                  properties:
+
+
+            
+      503:
+          description: Retry-After:100
+  """
+  res =  get_groups()
+  if res:
+    response = jsonify(res)
+    # return "tomorrow for{} is {}".format(group, res)
+    return make_response(response)
+  res = Response(headers={'Retry-After':200}, status=503)
+  return res
 
 
 @app.route('/api/schedule/<string:group>/next_week', methods=["GET"])
