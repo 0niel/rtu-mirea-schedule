@@ -138,7 +138,7 @@ def groups():
       
     responses:
       200:
-        description: Return week\'s schedule. There are 8 lessons on a day. "lesson":null, if there is no pair.
+        description: Return all groups in IIT.
         schema:
           type: object
           properties:
