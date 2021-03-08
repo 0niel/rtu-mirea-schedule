@@ -148,7 +148,49 @@ def return_one_day(today, group):
         print("No database")
         return None
     
+def get_groups():
+    try:
+        res = {"bachelor": {1:{}, 2:{}, 3:{}, 4:{}},
+                "master": {1:{}, 2:{}}
+        }
+        cursor = connect_to_sqlite()
+        sqlite_select_Query = "SELECT group_name FROM groups where group_name like 'И%';"
+        cursor.execute(sqlite_select_Query)
+        record = cursor.fetchall()
+        cursor.close()
+        m = []
+        b = []
+        a = []
+        m_courses = {}
+        b_courses = {}
+        max_year = 0
+        for group in record:
+            group = group[0]
+            print(group)
+            max_year = max(max_year, int(group[-2]+group[-1]))
+        
 
+        for group in record:
+            group = group[0]
+            if group[2] == "М":
+                course = max_year - int(group[-2]+group[-1]) + 1
+                if group[:4] in res["master"][course]:
+                        res["master"][course][group[:4]].append(int(group[5:7]))  
+                else:
+                    res["master"][course][group[:4]] = [int(group[5:7])] 
+            elif group[2] == "Б":
+                course = max_year - int(group[-2]+group[-1]) + 1
+                if group[:4] in res["bachelor"][course]:
+                        res["bachelor"][course][group[:4]].append(int(group[5:7]))  
+                else:
+                    res["bachelor"][course][group[:4]] = [int(group[5:7])] 
+            else:
+                a.append(group)
+        print(res)
+        return res
+    except:
+        print("No database")
+        return None
 
 def today_sch(group):
     today = datetime.now(tz=time_zone)
