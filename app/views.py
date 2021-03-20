@@ -3,7 +3,7 @@ from flask import Flask, flash, request, redirect, url_for, session, jsonify, re
 import requests
 from os import environ  
 import datetime
-from schedule import today_sch, tomorrow_sch, week_sch, next_week_sch, get_groups
+from schedule import today_sch, tomorrow_sch, week_sch, next_week_sch, get_groups, full_schedule
 import sys
 
 sys.path.append('..')
@@ -275,8 +275,40 @@ def secret_refresh():
       return make_response({"status": 'need_password'})
   
 @app.route('/api/schedule/<string:group>/full_schedule', methods=["GET"])
-def full_schedule():
-  pass
+def full_schedule(group):
+  """Current week's schedule for requested group
+    ---
+    parameters:
+      - name: group
+        in: path
+        type: string
+        required: true
+      
+    responses:
+      200:
+        description: Return full schedule of one group. There are 8 lessons on a day. "lesson":null, if there is no pair.
+        schema:
+          type: object
+          properties:
+            1:
+              type: object
+              properties:
+                monday:
+                  items:
+                    $ref: '#/definitions/Lesson'
+                  minItems: 8
+                  maxItems: 8
+            
+      503:
+          description: Retry-After:100
+  """
+  sch = full_schedule(group)
+  if sch:
+    response = jsonify(sch)
+    # return "today for{} is {}".format(group, res)
+    return make_response(response)
+  res = Response(headers={'Retry-After':200}, status=503)
+  return res 
 
 @app.route('/api/schedule/schedule_for_cache', methods=["GET"])
 def schedule_for_cache():

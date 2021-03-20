@@ -123,7 +123,6 @@ def format_lesson(record, day_of_week, week, today):
 
 
 def return_one_day(today, group):
-    print(today)
     week = cur_week(today)
     try:
         cursor = connect_to_sqlite()
@@ -229,3 +228,29 @@ def next_week_sch(group):
         else:
             return None
     return res
+
+def full_schedule(group):
+    today = datetime.now(tz=time_zone) + dt.timedelta(days=7)
+    day_of_week = today.isocalendar()[2]
+    days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+    res = {}
+    res2 = {}
+
+    for i in range(6):
+        today = datetime.now(tz=time_zone) + dt.timedelta(days=i-day_of_week+1)
+        day = return_one_day(today, group)
+        if day:
+            res[days[i]] = day
+        else:
+            return None
+    for i in range(6):
+        today = datetime.now(tz=time_zone) + dt.timedelta(days=i-day_of_week+1) + dt.timedelta(days=7)
+        day = return_one_day(today, group)
+        if day:
+            res2[days[i]] = day
+        else:
+            return None     
+    if cur_week(today) == 1: 
+        return {1:res, 2: res2}
+    
+    return {1:res2, 2: res}
