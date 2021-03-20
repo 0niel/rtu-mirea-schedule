@@ -9,7 +9,6 @@ import sys
 sys.path.append('..')
 from schedule_parser.main import parse_schedule
 
-####
 @app.route('/api/schedule/<string:group>/today', methods=["GET"])
 def today(group):
     """Today's schedule for requested group
@@ -44,6 +43,66 @@ def today(group):
                 type: string
               end: 
                 type: string
+      Week: 
+        type: object
+        properties:
+          monday:
+            type: array
+            items:
+              $ref: '#/definitions/Lesson'
+          tuesday:
+            type: array
+            items:
+              $ref: '#/definitions/Lesson'
+          wednesday: 
+            type: array
+            items:
+              $ref: '#/definitions/Lesson'
+          thursday:
+            type: array
+            items:
+              $ref: '#/definitions/Lesson'
+          friday: 
+            type: array
+            items:
+              $ref: '#/definitions/Lesson'
+          saturday:
+            type: array
+            items:
+              $ref: '#/definitions/Lesson'
+      FullShedule:
+        type: object
+        nullable: true
+        properties:
+          first:
+            type: object
+            properties:
+              week:
+                $ref: '#/definitions/Week'
+          second:
+            type: object
+            properties:
+              week:
+                $ref: '#/definitions/Week'
+      
+      Direction:
+        object
+      
+      Groups:
+        bachelor:
+          type: object
+          properties:
+            first:
+
+            second:
+
+            third:
+
+            fourth:
+
+
+
+
     responses:
       200:
         description: Return today\'s schedule. There are 8 lessons on a day. "lesson":null, if there is no pair 
@@ -66,7 +125,6 @@ def today(group):
     res = Response(headers={'Retry-After':200}, status=503)
     return res 
 
-#############
 @app.route('/api/schedule/<string:group>/tomorrow', methods=["GET"])
 def tomorrow(group):
     """Today's schedule for requested group
@@ -112,13 +170,7 @@ def week(group):
       200:
         description: Return week\'s schedule. There are 8 lessons on a day. "lesson":null, if there is no pair.
         schema:
-          type: object
-          properties:
-            monday:
-              items:
-                $ref: '#/definitions/Lesson'
-              minItems: 8
-              maxItems: 8
+          $ref: '#/definitions/Week'
             
       503:
           description: Retry-After:100
@@ -192,7 +244,6 @@ def groups():
     return make_response(response)
   res = Response(headers={'Retry-After':200}, status=503)
   return res
-
 
 @app.route('/api/schedule/<string:group>/next_week', methods=["GET"])
 def next_week(group):

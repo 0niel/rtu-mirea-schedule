@@ -171,8 +171,8 @@ def for_cache():
 
 def get_groups():
     try:
-        res = {"bachelor": {1:{}, 2:{}, 3:{}, 4:{}},
-                "master": {1:{}, 2:{}}
+        res = {"bachelor": {"first":{}, "second":{}, "third":{}, "fouth":{}},
+                "master": {"first":{}, "second":{}}
         }
         cursor = connect_to_sqlite()
         sqlite_select_Query = "SELECT group_name FROM groups where group_name like 'И%';"
@@ -271,6 +271,6 @@ def full_sched(group):
         else:
             return None     
     if cur_week(today) == 1: 
-        return {1:res, 2: res2}
+        return {"first": res, "second": res2}
     
-    return {1:res2, 2: res}
+    return {"first": res2, "second": res}
