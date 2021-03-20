@@ -138,7 +138,7 @@ def groups():
       
     responses:
       200:
-        description: Return week\'s schedule. There are 8 lessons on a day. "lesson":null, if there is no pair.
+        description: Return all groups in IIT.
         schema:
           type: object
           properties:
@@ -162,6 +162,8 @@ def groups():
                         default: 1
                       uniqueItems: true
                 2:
+                  type: object
+                  properties:
                 3:
                   type: object
                   properties:
@@ -271,4 +273,12 @@ def secret_refresh():
       return make_response({"status": 'wrong_password'}, 401)
     except:
       return make_response({"status": 'need_password'})
-    
+  
+@app.route('/api/schedule/<string:group>/full_schedule', methods=["GET"])
+def full_schedule():
+  pass
+
+@app.route('/api/schedule/schedule_for_cache', methods=["GET"])
+def schedule_for_cache():
+  pass
+

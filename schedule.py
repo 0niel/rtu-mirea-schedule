@@ -5,6 +5,10 @@ from datetime import datetime, date, time
 import re
 from schedule_parser.main import parse_schedule
 
+
+offset = dt.timedelta(hours=3)
+
+
 rings = {
     1: {"start": '9:00', "end": '10:30'},
     2: {"start": '10:40', "end": '12:10'},
@@ -15,7 +19,7 @@ rings = {
     7: {"start": '19:40', "end": '21:10'},
 }
 
-time_zone = None
+time_zone = dt.timezone(offset, name='МСК')
 
 def cur_week(today):
     if today.month<8:
@@ -33,25 +37,25 @@ def cur_week(today):
 def format_lesson(record, day_of_week, week, today):
     day = [{
         "time" : {"start": '9:00', "end": '10:30'},
-        "lesson": "null"
+        "lesson": None
     }, {
         "time" : {"start": '10:40', "end": '12:10'},
-        "lesson": "null"
+        "lesson": None
     }, {
         "time" : {"start": '12:40', "end": '14:10'},
-        "lesson": "null"
+        "lesson": None
     }, {
         "time" :{"start": '14:20', "end": '15:50'} ,
-        "lesson": "null"
+        "lesson": None
     }, {
         "time" : {"start": '16:20', "end": '17:50'},
-        "lesson": "null"
+        "lesson": None
     }, {
         "time" : {"start": '18:00', "end": '19:30'},
-        "lesson": "null"
+        "lesson": None
     }, { 
         "time" : {"start": '19:40', "end": '21:10'},
-        "lesson": "null"
+        "lesson": None
     }]
     for lesson in record:
         res_lesson = {}
@@ -115,17 +119,15 @@ def format_lesson(record, day_of_week, week, today):
             res_lesson["type"] = typ[0]
             day[lesson[0]-1]["lesson"] = res_lesson
 
-        
     return day
 
 
 def return_one_day(today, group):
+    print(today)
     week = cur_week(today)
     try:
         cursor = connect_to_sqlite()
         day_of_week = today.isocalendar()[2]
-        if(day_of_week==7):
-            return ""
         if (week%2):
             current_week = 1
         else:
