@@ -149,6 +149,26 @@ def return_one_day(today, group):
         print("No database")
         return None
     
+def for_cache(): 
+    try:
+        cursor = connect_to_sqlite()
+        sqlite_select_Query = "SELECT group_name FROM groups where group_name like 'И%';"
+        cursor.execute(sqlite_select_Query)
+        record = cursor.fetchall()
+        cursor.close()
+        res = {}
+
+        for group in record:
+            group = group[0]
+            print(group)
+            res[group] = full_sched(group)
+        
+        return res
+    except:
+        print("No database")
+        return None
+
+
 def get_groups():
     try:
         res = {"bachelor": {1:{}, 2:{}, 3:{}, 4:{}},

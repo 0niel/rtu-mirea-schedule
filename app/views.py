@@ -3,7 +3,7 @@ from flask import Flask, flash, request, redirect, url_for, session, jsonify, re
 import requests
 from os import environ  
 import datetime
-from schedule import today_sch, tomorrow_sch, week_sch, next_week_sch, get_groups, full_sched
+from schedule import today_sch, tomorrow_sch, week_sch, next_week_sch, get_groups, full_sched, for_cache
 import sys
 
 sys.path.append('..')
@@ -312,5 +312,32 @@ def full_schedule(group):
 
 @app.route('/api/schedule/schedule_for_cache', methods=["GET"])
 def schedule_for_cache():
-  pass
+  """Current week's schedule for requested group
+    ---
+      
+    responses:
+      200:
+        description: Return full schedule of one group. There are 8 lessons on a day. "lesson":null, if there is no pair.
+        schema:
+          type: object
+          properties:
+            1:
+              type: object
+              properties:
+                monday:
+                  items:
+                    $ref: '#/definitions/Lesson'
+                  minItems: 8
+                  maxItems: 8
+            
+      503:
+          description: Retry-After:100
+  """
+  sch = for_cache()
+  if sch:
+    response = jsonify(sch)
+    # return "today for{} is {}".format(group, res)
+    return make_response(response)
+  res = Response(headers={'Retry-After':200}, status=503)
+  return res
 
