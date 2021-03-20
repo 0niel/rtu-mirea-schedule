@@ -229,7 +229,7 @@ def next_week_sch(group):
             return None
     return res
 
-def full_schedule(group):
+def full_sched(group):
     today = datetime.now(tz=time_zone) + dt.timedelta(days=7)
     day_of_week = today.isocalendar()[2]
     days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]

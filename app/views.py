@@ -3,7 +3,7 @@ from flask import Flask, flash, request, redirect, url_for, session, jsonify, re
 import requests
 from os import environ  
 import datetime
-from schedule import today_sch, tomorrow_sch, week_sch, next_week_sch, get_groups, full_schedule
+from schedule import today_sch, tomorrow_sch, week_sch, next_week_sch, get_groups, full_sched
 import sys
 
 sys.path.append('..')
@@ -302,7 +302,7 @@ def full_schedule(group):
       503:
           description: Retry-After:100
   """
-  sch = full_schedule(group)
+  sch = full_sched(group)
   if sch:
     response = jsonify(sch)
     # return "today for{} is {}".format(group, res)
