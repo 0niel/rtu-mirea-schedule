@@ -85,22 +85,48 @@ def today(group):
               week:
                 $ref: '#/definitions/Week'
       
+      Number: 
+        type: object
+        properties:
+          number:
+            type: int
+          group:
+            type: string
+
+
       Direction:
-        object
+        type: object
+        properties:
+          name: 
+            type: string
+          numbers:
+            type: array
+            items:
+              $ref: '#/definitions/Number'
+                      
       
       Groups:
-        bachelor:
-          type: object
-          properties:
-            first:
-
-            second:
-
-            third:
-
-            fourth:
-
-
+        type: object
+        properties:
+          bachelor:
+            type: object
+            properties:
+              first:
+                type: array
+                items:
+                  $ref: '#/definitions/Direction'
+              second:
+                type: array
+                items:
+                  $ref: '#/definitions/Direction'
+              third:
+                type: array
+                items:
+                  $ref: '#/definitions/Direction'
+              fourth:
+                type: array
+                items:
+                  $ref: '#/definitions/Direction'          
 
 
     responses:
