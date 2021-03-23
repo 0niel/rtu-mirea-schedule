@@ -121,8 +121,54 @@ def format_lesson(record, day_of_week, week, today):
 
     return day
 
+def alter_format_lesson(record, day_of_week, week, today):
+    day = [{
+        "time" : {"start": '9:00', "end": '10:30'},
+        "lesson": None
+    }, {
+        "time" : {"start": '10:40', "end": '12:10'},
+        "lesson": None
+    }, {
+        "time" : {"start": '12:40', "end": '14:10'},
+        "lesson": None
+    }, {
+        "time" :{"start": '14:20', "end": '15:50'} ,
+        "lesson": None
+    }, {
+        "time" : {"start": '16:20', "end": '17:50'},
+        "lesson": None
+    }, {
+        "time" : {"start": '18:00', "end": '19:30'},
+        "lesson": None
+    }, { 
+        "time" : {"start": '19:40', "end": '21:10'},
+        "lesson": None
+    }]
+    
+    for lesson in record:
+        res_lesson = {}
+        typ = lesson[3].split()
+        typ.append('')
+        less = lesson[2]
+        if(day[lesson[0]-1]["lesson"]): 
+            day[lesson[0]-1]["lesson"]["classRoom"] = day[lesson[0]-1]["lesson"]["classRoom"] + "\n" + lesson[4]
 
-def return_one_day(today, group):
+            day[lesson[0]-1]["lesson"]["teacher"] = day[lesson[0]-1]["lesson"]["teacher"] + "\n" + lesson[5]
+
+            day[lesson[0]-1]["lesson"]["name"] = day[lesson[0]-1]["lesson"]["name"] + "\n" + less
+            print(day[lesson[0]-1]["lesson"]["name"] + "\n" + less + "\n")
+
+            day[lesson[0]-1]["lesson"]["type"] = day[lesson[0]-1]["lesson"]["type"] + "\n" + typ[0]
+        else:    
+            res_lesson["classRoom"] = lesson[4]
+            res_lesson["teacher"] = lesson[5]
+            res_lesson["name"] = less
+            res_lesson["type"] = typ[0]
+            day[lesson[0]-1]["lesson"] = res_lesson
+
+    return day
+
+def return_one_day(today, group, alter_format = None):
     week = cur_week(today)
     try:
         cursor = connect_to_sqlite()
@@ -144,6 +190,8 @@ def return_one_day(today, group):
         cursor.execute(sqlite_select_Query, {'group':group, 'day':day_of_week, 'week':current_week})
         record = cursor.fetchall()
         cursor.close()
+        if alter_format:
+            alter_format_lesson(record, day_of_week, week, today)
         return format_lesson(record, day_of_week, week, today)
     except:
         print("No database")
@@ -167,7 +215,6 @@ def for_cache():
     except:
         print("No database")
         return None
-
 
 def get_groups():
     courses = {
@@ -269,7 +316,7 @@ def next_week_sch(group):
     return res
 
 def full_sched(group):
-    today = datetime.now(tz=time_zone) + dt.timedelta(days=7)
+    today = datetime.now(tz=time_zone)
     day_of_week = today.isocalendar()[2]
     days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
     res = {}
@@ -277,19 +324,20 @@ def full_sched(group):
 
     for i in range(6):
         today = datetime.now(tz=time_zone) + dt.timedelta(days=i-day_of_week+1)
-        day = return_one_day(today, group)
+        day = return_one_day(today, group, alter_format=1)
         if day:
             res[days[i]] = day
         else:
             return None
     for i in range(6):
         today = datetime.now(tz=time_zone) + dt.timedelta(days=i-day_of_week+1) + dt.timedelta(days=7)
-        day = return_one_day(today, group)
+        day = return_one_day(today, group, alter_format=1)
         if day:
             res2[days[i]] = day
         else:
             return None     
-    if cur_week(today) == 1: 
+    if cur_week(datetime.now(tz=time_zone))%2 == 1: 
+        print("here?")
         return {"first": res, "second": res2}
-    
+    print("here!")
     return {"first": res2, "second": res}

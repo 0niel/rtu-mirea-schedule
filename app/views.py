@@ -70,20 +70,15 @@ def today(group):
             type: array
             items:
               $ref: '#/definitions/Lesson'
-      FullShedule:
+      FullSchedule:
         type: object
         nullable: true
         properties:
           first:
-            type: object
-            properties:
-              week:
-                $ref: '#/definitions/Week'
+            $ref: '#/definitions/Week'
           second:
-            type: object
-            properties:
-              week:
-                $ref: '#/definitions/Week'
+            $ref: '#/definitions/Week'
+          
       
       Number: 
         type: object
@@ -338,18 +333,9 @@ def full_schedule(group):
       
     responses:
       200:
-        description: Return full schedule of one group. There are 8 lessons on a day. "lesson":null, if there is no pair.
+        description: Return full schedule of one group. 
         schema:
-          type: object
-          properties:
-            1:
-              type: object
-              properties:
-                monday:
-                  items:
-                    $ref: '#/definitions/Lesson'
-                  minItems: 8
-                  maxItems: 8
+          $ref: '#/definitions/FullSchedule'
             
       503:
           description: Retry-After:100
@@ -364,27 +350,7 @@ def full_schedule(group):
 
 @app.route('/api/schedule/schedule_for_cache', methods=["GET"])
 def schedule_for_cache():
-  """Current week's schedule for requested group
-    ---
-      
-    responses:
-      200:
-        description: Return full schedule of one group. There are 8 lessons on a day. "lesson":null, if there is no pair.
-        schema:
-          type: object
-          properties:
-            1:
-              type: object
-              properties:
-                monday:
-                  items:
-                    $ref: '#/definitions/Lesson'
-                  minItems: 8
-                  maxItems: 8
-            
-      503:
-          description: Retry-After:100
-  """
+
   sch = for_cache()
   if sch:
     response = jsonify(sch)
