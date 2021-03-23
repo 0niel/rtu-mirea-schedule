@@ -3,13 +3,12 @@ from flask import Flask, flash, request, redirect, url_for, session, jsonify, re
 import requests
 from os import environ  
 import datetime
-from schedule import today_sch, tomorrow_sch, week_sch, next_week_sch, get_groups
+from schedule import today_sch, tomorrow_sch, week_sch, next_week_sch, get_groups, full_sched, for_cache
 import sys
 
 sys.path.append('..')
 from schedule_parser.main import parse_schedule
 
-####
 @app.route('/api/schedule/<string:group>/today', methods=["GET"])
 def today(group):
     """Today's schedule for requested group
@@ -44,6 +43,107 @@ def today(group):
                 type: string
               end: 
                 type: string
+      Week: 
+        type: object
+        properties:
+          monday:
+            type: array
+            items:
+              $ref: '#/definitions/Lesson'
+          tuesday:
+            type: array
+            items:
+              $ref: '#/definitions/Lesson'
+          wednesday: 
+            type: array
+            items:
+              $ref: '#/definitions/Lesson'
+          thursday:
+            type: array
+            items:
+              $ref: '#/definitions/Lesson'
+          friday: 
+            type: array
+            items:
+              $ref: '#/definitions/Lesson'
+          saturday:
+            type: array
+            items:
+              $ref: '#/definitions/Lesson'
+      FullSchedule:
+        type: object
+        nullable: true
+        properties:
+          first:
+            $ref: '#/definitions/Week'
+          second:
+            $ref: '#/definitions/Week'
+          
+      
+      Number: 
+        type: object
+        properties:
+          number:
+            type: integer
+          group:
+            type: string
+
+
+      Direction:
+        type: object
+        properties:
+          name: 
+            type: string
+          numbers:
+            type: array
+            items:
+              $ref: '#/definitions/Number'
+                      
+      LiteDirection:
+        type: object
+        properties:
+          name: 
+            type: string
+          numbers:
+            type: array
+            items:
+              type: string
+
+      Groups:
+        type: object
+        properties:
+          bachelor:
+            type: object
+            properties:
+              first:
+                type: array
+                items:
+                  $ref: '#/definitions/LiteDirection'
+              second:
+                type: array
+                items:
+                  $ref: '#/definitions/LiteDirection'
+              third:
+                type: array
+                items:
+                  $ref: '#/definitions/LiteDirection'
+              fourth:
+                type: array
+                items:
+                  $ref: '#/definitions/LiteDirection'
+          master:
+            type: object
+            properties:
+              first:
+                type: array
+                items:
+                  $ref: '#/definitions/Direction'
+              second:
+                type: array
+                items:
+                  $ref: '#/definitions/Direction'                    
+
+
     responses:
       200:
         description: Return today\'s schedule. There are 8 lessons on a day. "lesson":null, if there is no pair 
@@ -66,7 +166,6 @@ def today(group):
     res = Response(headers={'Retry-After':200}, status=503)
     return res 
 
-#############
 @app.route('/api/schedule/<string:group>/tomorrow', methods=["GET"])
 def tomorrow(group):
     """Today's schedule for requested group
@@ -112,13 +211,7 @@ def week(group):
       200:
         description: Return week\'s schedule. There are 8 lessons on a day. "lesson":null, if there is no pair.
         schema:
-          type: object
-          properties:
-            monday:
-              items:
-                $ref: '#/definitions/Lesson'
-              minItems: 8
-              maxItems: 8
+          $ref: '#/definitions/Week'
             
       503:
           description: Retry-After:100
@@ -140,46 +233,7 @@ def groups():
       200:
         description: Return all groups in IIT.
         schema:
-          type: object
-          properties:
-            bachelor:
-              type: object
-              properties:
-                1:
-                  type: object
-                  properties:
-                    ИАБО:
-                      type: array
-                      items:
-                        type: integer
-                        minimum: 1
-                      uniqueItems: true
-                    ИВБО:
-                      type: array
-                      items:
-                        type: integer
-                        minimum: 1
-                        default: 1
-                      uniqueItems: true
-                2:
-                  type: object
-                  properties:
-                3:
-                  type: object
-                  properties:
-                4:
-                  type: object
-                  properties:
-            master:
-              type: object
-              properties:
-                1:
-                  type: object
-                  properties:
-                2:
-                  type: object
-                  properties:
-
+          $ref: '#/definitions/Groups'
 
             
       503:
@@ -192,7 +246,6 @@ def groups():
     return make_response(response)
   res = Response(headers={'Retry-After':200}, status=503)
   return res
-
 
 @app.route('/api/schedule/<string:group>/next_week', methods=["GET"])
 def next_week(group):
@@ -208,13 +261,7 @@ def next_week(group):
       200:
         description: Return week\'s schedule. There are 8 lessons on a day. "lesson":null, if there is no pair.
         schema:
-          type: object
-          properties:
-            monday:
-              items:
-                $ref: '#/definitions/Lesson'
-              minItems: 8
-              maxItems: 8
+          $ref: '#/definitions/Week'
             
       503:
           description: Retry-After:100
@@ -275,10 +322,40 @@ def secret_refresh():
       return make_response({"status": 'need_password'})
   
 @app.route('/api/schedule/<string:group>/full_schedule', methods=["GET"])
-def full_schedule():
-  pass
+def full_schedule(group):
+  """Current week's schedule for requested group
+    ---
+    parameters:
+      - name: group
+        in: path
+        type: string
+        required: true
+      
+    responses:
+      200:
+        description: Return full schedule of one group. 
+        schema:
+          $ref: '#/definitions/FullSchedule'
+            
+      503:
+          description: Retry-After:100
+  """
+  sch = full_sched(group)
+  if sch:
+    response = jsonify(sch)
+    # return "today for{} is {}".format(group, res)
+    return make_response(response)
+  res = Response(headers={'Retry-After':200}, status=503)
+  return res 
 
 @app.route('/api/schedule/schedule_for_cache', methods=["GET"])
 def schedule_for_cache():
-  pass
+
+  sch = for_cache()
+  if sch:
+    response = jsonify(sch)
+    # return "today for{} is {}".format(group, res)
+    return make_response(response)
+  res = Response(headers={'Retry-After':200}, status=503)
+  return res
 

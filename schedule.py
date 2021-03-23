@@ -121,9 +121,54 @@ def format_lesson(record, day_of_week, week, today):
 
     return day
 
+def alter_format_lesson(record, day_of_week, week, today):
+    day = [{
+        "time" : {"start": '9:00', "end": '10:30'},
+        "lesson": None
+    }, {
+        "time" : {"start": '10:40', "end": '12:10'},
+        "lesson": None
+    }, {
+        "time" : {"start": '12:40', "end": '14:10'},
+        "lesson": None
+    }, {
+        "time" :{"start": '14:20', "end": '15:50'} ,
+        "lesson": None
+    }, {
+        "time" : {"start": '16:20', "end": '17:50'},
+        "lesson": None
+    }, {
+        "time" : {"start": '18:00', "end": '19:30'},
+        "lesson": None
+    }, { 
+        "time" : {"start": '19:40', "end": '21:10'},
+        "lesson": None
+    }]
+    
+    for lesson in record:
+        res_lesson = {}
+        typ = lesson[3].split()
+        typ.append('')
+        less = lesson[2]
+        if(day[lesson[0]-1]["lesson"]): 
+            day[lesson[0]-1]["lesson"]["classRoom"] = day[lesson[0]-1]["lesson"]["classRoom"] + "\n" + lesson[4]
 
-def return_one_day(today, group):
-    print(today)
+            day[lesson[0]-1]["lesson"]["teacher"] = day[lesson[0]-1]["lesson"]["teacher"] + "\n" + lesson[5]
+
+            day[lesson[0]-1]["lesson"]["name"] = day[lesson[0]-1]["lesson"]["name"] + "\n" + less
+            print(day[lesson[0]-1]["lesson"]["name"] + "\n" + less + "\n")
+
+            day[lesson[0]-1]["lesson"]["type"] = day[lesson[0]-1]["lesson"]["type"] + "\n" + typ[0]
+        else:    
+            res_lesson["classRoom"] = lesson[4]
+            res_lesson["teacher"] = lesson[5]
+            res_lesson["name"] = less
+            res_lesson["type"] = typ[0]
+            day[lesson[0]-1]["lesson"] = res_lesson
+
+    return day
+
+def return_one_day(today, group, alter_format = None):
     week = cur_week(today)
     try:
         cursor = connect_to_sqlite()
@@ -145,15 +190,39 @@ def return_one_day(today, group):
         cursor.execute(sqlite_select_Query, {'group':group, 'day':day_of_week, 'week':current_week})
         record = cursor.fetchall()
         cursor.close()
+        if alter_format:
+            alter_format_lesson(record, day_of_week, week, today)
         return format_lesson(record, day_of_week, week, today)
     except:
         print("No database")
         return None
     
-def get_groups():
+def for_cache(): 
     try:
-        res = {"bachelor": {1:{}, 2:{}, 3:{}, 4:{}},
-                "master": {1:{}, 2:{}}
+        cursor = connect_to_sqlite()
+        sqlite_select_Query = "SELECT group_name FROM groups where group_name like 'И%';"
+        cursor.execute(sqlite_select_Query)
+        record = cursor.fetchall()
+        cursor.close()
+        res = {}
+
+        for group in record:
+            group = group[0]
+            print(group)
+            res[group] = full_sched(group)
+        
+        return res
+    except:
+        print("No database")
+        return None
+
+def get_groups():
+    courses = {
+        1: "first", 2: "second", 3: "third", 4: "fourth"
+    }
+    try:
+        res = {"bachelor": {"first":[], "second":[], "third":[], "fourth":[]},
+                "master": {"first":[], "second":[]}
         }
         cursor = connect_to_sqlite()
         sqlite_select_Query = "SELECT group_name FROM groups where group_name like 'И%';"
@@ -171,24 +240,40 @@ def get_groups():
             print(group)
             max_year = max(max_year, int(group[-2]+group[-1]))
         
-
+        
         for group in record:
             group = group[0]
+            
             if group[2] == "М":
                 course = max_year - int(group[-2]+group[-1]) + 1
-                if group[:4] in res["master"][course]:
-                        res["master"][course][group[:4]].append(int(group[5:7]))  
+                ind = -1
+                
+                print(res["master"][courses[course]])
+                for i in range(len(res["master"][courses[course]])):
+                    if res["master"][courses[course]][i]["name"] == group[:4]:
+                        ind = i 
+                if ind!=-1:
+                    #res["master"][courses[course]][i]["numbers"].append({"number" : int(group[5:7]), "group": group})
+                    res["master"][courses[course]][i]["numbers"].append(group)
                 else:
-                    res["master"][course][group[:4]] = [int(group[5:7])] 
+                    #res["master"][courses[course]].append({"name": group[:4], "numbers":[{"number" : int(group[5:7]), "group": group}]})
+                    res["master"][courses[course]].append({"name": group[:4], "numbers":[group]})
+
             elif group[2] == "Б":
                 course = max_year - int(group[-2]+group[-1]) + 1
-                if group[:4] in res["bachelor"][course]:
-                        res["bachelor"][course][group[:4]].append(int(group[5:7]))  
+                ind = -1
+                for i in range(len(res["bachelor"][courses[course]])):
+                    if res["bachelor"][courses[course]][i]["name"] == group[:4]:
+                        ind = i 
+                if ind!=-1:
+                    res["bachelor"][courses[course]][i]["numbers"].append(group)
+                    #res["bachelor"][courses[course]][i]["numbers"].append({"number" : int(group[5:7]), "group": group})
                 else:
-                    res["bachelor"][course][group[:4]] = [int(group[5:7])] 
+                    res["bachelor"][courses[course]].append({"name": group[:4], "numbers":[group]})
+                    #res["bachelor"][courses[course]].append({"name": group[:4], "numbers":[{"number" : int(group[5:7]), "group": group}]})
+
             else:
                 a.append(group)
-        print(res)
         return res
     except:
         print("No database")
@@ -229,3 +314,30 @@ def next_week_sch(group):
         else:
             return None
     return res
+
+def full_sched(group):
+    today = datetime.now(tz=time_zone)
+    day_of_week = today.isocalendar()[2]
+    days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+    res = {}
+    res2 = {}
+
+    for i in range(6):
+        today = datetime.now(tz=time_zone) + dt.timedelta(days=i-day_of_week+1)
+        day = return_one_day(today, group, alter_format=1)
+        if day:
+            res[days[i]] = day
+        else:
+            return None
+    for i in range(6):
+        today = datetime.now(tz=time_zone) + dt.timedelta(days=i-day_of_week+1) + dt.timedelta(days=7)
+        day = return_one_day(today, group, alter_format=1)
+        if day:
+            res2[days[i]] = day
+        else:
+            return None     
+    if cur_week(datetime.now(tz=time_zone))%2 == 1: 
+        print("here?")
+        return {"first": res, "second": res2}
+    print("here!")
+    return {"first": res2, "second": res}
