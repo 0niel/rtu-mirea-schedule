@@ -89,7 +89,7 @@ def today(group):
         type: object
         properties:
           number:
-            type: int
+            type: integer
           group:
             type: string
 
@@ -104,7 +104,16 @@ def today(group):
             items:
               $ref: '#/definitions/Number'
                       
-      
+      LiteDirection:
+        type: object
+        properties:
+          name: 
+            type: string
+          numbers:
+            type: array
+            items:
+              type: string
+
       Groups:
         type: object
         properties:
@@ -114,19 +123,30 @@ def today(group):
               first:
                 type: array
                 items:
+                  $ref: '#/definitions/LiteDirection'
+              second:
+                type: array
+                items:
+                  $ref: '#/definitions/LiteDirection'
+              third:
+                type: array
+                items:
+                  $ref: '#/definitions/LiteDirection'
+              fourth:
+                type: array
+                items:
+                  $ref: '#/definitions/LiteDirection'
+          master:
+            type: object
+            properties:
+              first:
+                type: array
+                items:
                   $ref: '#/definitions/Direction'
               second:
                 type: array
                 items:
-                  $ref: '#/definitions/Direction'
-              third:
-                type: array
-                items:
-                  $ref: '#/definitions/Direction'
-              fourth:
-                type: array
-                items:
-                  $ref: '#/definitions/Direction'          
+                  $ref: '#/definitions/Direction'                    
 
 
     responses:
@@ -218,46 +238,7 @@ def groups():
       200:
         description: Return all groups in IIT.
         schema:
-          type: object
-          properties:
-            bachelor:
-              type: object
-              properties:
-                1:
-                  type: object
-                  properties:
-                    ИАБО:
-                      type: array
-                      items:
-                        type: integer
-                        minimum: 1
-                      uniqueItems: true
-                    ИВБО:
-                      type: array
-                      items:
-                        type: integer
-                        minimum: 1
-                        default: 1
-                      uniqueItems: true
-                2:
-                  type: object
-                  properties:
-                3:
-                  type: object
-                  properties:
-                4:
-                  type: object
-                  properties:
-            master:
-              type: object
-              properties:
-                1:
-                  type: object
-                  properties:
-                2:
-                  type: object
-                  properties:
-
+          $ref: '#/definitions/Groups'
 
             
       503:
@@ -285,13 +266,7 @@ def next_week(group):
       200:
         description: Return week\'s schedule. There are 8 lessons on a day. "lesson":null, if there is no pair.
         schema:
-          type: object
-          properties:
-            monday:
-              items:
-                $ref: '#/definitions/Lesson'
-              minItems: 8
-              maxItems: 8
+          $ref: '#/definitions/Week'
             
       503:
           description: Retry-After:100

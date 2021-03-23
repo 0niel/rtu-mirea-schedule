@@ -170,9 +170,12 @@ def for_cache():
 
 
 def get_groups():
+    courses = {
+        1: "first", 2: "second", 3: "third", 4: "fourth"
+    }
     try:
-        res = {"bachelor": {"first":{}, "second":{}, "third":{}, "fouth":{}},
-                "master": {"first":{}, "second":{}}
+        res = {"bachelor": {"first":[], "second":[], "third":[], "fourth":[]},
+                "master": {"first":[], "second":[]}
         }
         cursor = connect_to_sqlite()
         sqlite_select_Query = "SELECT group_name FROM groups where group_name like 'И%';"
@@ -190,24 +193,40 @@ def get_groups():
             print(group)
             max_year = max(max_year, int(group[-2]+group[-1]))
         
-
+        
         for group in record:
             group = group[0]
+            
             if group[2] == "М":
                 course = max_year - int(group[-2]+group[-1]) + 1
-                if group[:4] in res["master"][course]:
-                        res["master"][course][group[:4]].append(int(group[5:7]))  
+                ind = -1
+                
+                print(res["master"][courses[course]])
+                for i in range(len(res["master"][courses[course]])):
+                    if res["master"][courses[course]][i]["name"] == group[:4]:
+                        ind = i 
+                if ind!=-1:
+                    #res["master"][courses[course]][i]["numbers"].append({"number" : int(group[5:7]), "group": group})
+                    res["master"][courses[course]][i]["numbers"].append(group)
                 else:
-                    res["master"][course][group[:4]] = [int(group[5:7])] 
+                    #res["master"][courses[course]].append({"name": group[:4], "numbers":[{"number" : int(group[5:7]), "group": group}]})
+                    res["master"][courses[course]].append({"name": group[:4], "numbers":[group]})
+
             elif group[2] == "Б":
                 course = max_year - int(group[-2]+group[-1]) + 1
-                if group[:4] in res["bachelor"][course]:
-                        res["bachelor"][course][group[:4]].append(int(group[5:7]))  
+                ind = -1
+                for i in range(len(res["bachelor"][courses[course]])):
+                    if res["bachelor"][courses[course]][i]["name"] == group[:4]:
+                        ind = i 
+                if ind!=-1:
+                    res["bachelor"][courses[course]][i]["numbers"].append(group)
+                    #res["bachelor"][courses[course]][i]["numbers"].append({"number" : int(group[5:7]), "group": group})
                 else:
-                    res["bachelor"][course][group[:4]] = [int(group[5:7])] 
+                    res["bachelor"][courses[course]].append({"name": group[:4], "numbers":[group]})
+                    #res["bachelor"][courses[course]].append({"name": group[:4], "numbers":[{"number" : int(group[5:7]), "group": group}]})
+
             else:
                 a.append(group)
-        print(res)
         return res
     except:
         print("No database")
