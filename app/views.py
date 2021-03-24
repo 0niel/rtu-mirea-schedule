@@ -137,11 +137,11 @@ def today(group):
               first:
                 type: array
                 items:
-                  $ref: '#/definitions/Direction'
+                  $ref: '#/definitions/LiteDirection'
               second:
                 type: array
                 items:
-                  $ref: '#/definitions/Direction'                    
+                  $ref: '#/definitions/LiteDirection'                    
 
 
     responses:
