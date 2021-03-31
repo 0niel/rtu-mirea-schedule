@@ -1,5 +1,4 @@
 from connect import connect_to_sqlite
-import pprint
 import datetime as dt
 from datetime import datetime, date, time
 import re
@@ -238,7 +237,6 @@ def get_groups():
         max_year = 0
         for group in record:
             group = group[0]
-            print(group)
             max_year = max(max_year, int(group[-2]+group[-1]))
         
         
@@ -248,8 +246,6 @@ def get_groups():
             if group[2] == "М":
                 course = max_year - int(group[-2]+group[-1]) + 1
                 ind = -1
-                
-                print(res["master"][courses[course]])
                 for i in range(len(res["master"][courses[course]])):
                     if res["master"][courses[course]][i]["name"] == group[:4]:
                         ind = i 
