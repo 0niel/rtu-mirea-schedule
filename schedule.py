@@ -4,6 +4,7 @@ import datetime as dt
 from datetime import datetime, date, time
 import re
 from schedule_parser.main import parse_schedule
+from pprint import pprint
 
 
 offset = dt.timedelta(hours=3)
@@ -85,8 +86,11 @@ def format_lesson(record, day_of_week, week, today):
                     res_lesson["type"] = typ[0]
                     day[lesson[0]-1]["lesson"] = res_lesson
 
-        elif "н." in less or " н " in less:
-            if "н." in less:
+        elif " н." in less or " н " in less or ("н." in less and "Ин." not in less):
+            if " н." in less:
+                exc = less.split(" н.")[0]
+                less = less.split(" н.")[1].strip()
+            elif "н." in less:
                 exc = less.split("н.")[0]
                 less = less.split("н.")[1].strip()
             elif " н " in less:
@@ -156,16 +160,13 @@ def alter_format_lesson(record, day_of_week, week, today):
             day[lesson[0]-1]["lesson"]["teacher"] = day[lesson[0]-1]["lesson"]["teacher"] + "\n" + lesson[5]
 
             day[lesson[0]-1]["lesson"]["name"] = day[lesson[0]-1]["lesson"]["name"] + "\n" + less
-            print(day[lesson[0]-1]["lesson"]["name"] + "\n" + less + "\n")
-
             day[lesson[0]-1]["lesson"]["type"] = day[lesson[0]-1]["lesson"]["type"] + "\n" + typ[0]
-        else:    
+        else:
             res_lesson["classRoom"] = lesson[4]
             res_lesson["teacher"] = lesson[5]
             res_lesson["name"] = less
             res_lesson["type"] = typ[0]
             day[lesson[0]-1]["lesson"] = res_lesson
-
     return day
 
 def return_one_day(today, group, alter_format = None):
@@ -191,7 +192,7 @@ def return_one_day(today, group, alter_format = None):
         record = cursor.fetchall()
         cursor.close()
         if alter_format:
-            alter_format_lesson(record, day_of_week, week, today)
+            return alter_format_lesson(record, day_of_week, week, today)
         return format_lesson(record, day_of_week, week, today)
     except:
         print("No database")
@@ -337,7 +338,5 @@ def full_sched(group):
         else:
             return None     
     if cur_week(datetime.now(tz=time_zone))%2 == 1: 
-        print("here?")
         return {"first": res, "second": res2}
-    print("here!")
     return {"first": res2, "second": res}

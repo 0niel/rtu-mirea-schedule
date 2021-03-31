@@ -242,6 +242,7 @@ def groups():
   res =  get_groups()
   if res:
     response = jsonify(res)
+    print(res)
     # return "tomorrow for{} is {}".format(group, res)
     return make_response(response)
   res = Response(headers={'Retry-After':200}, status=503)
