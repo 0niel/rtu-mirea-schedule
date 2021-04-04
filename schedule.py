@@ -34,7 +34,7 @@ def cur_week(today):
         week+=1
     return week
 
-def format_lesson(record, day_of_week, week, today):
+def format_lesson(record, day_of_week, week, today=None):
     day = [{
         "time" : {"start": '9:00', "end": '10:30'},
         "lesson": None
@@ -196,6 +196,31 @@ def return_one_day(today, group, alter_format = None):
     except:
         print("No database")
         return None
+
+def return_one_day_by_week(week, day_of_week, group, alter_format = None):
+    try:
+        cursor = connect_to_sqlite()
+        if (week%2):
+            current_week = 1
+        else:
+            current_week = 2
+        sqlite_select_Query = "SELECT schedule_calls.call_id, lessons.call_time, discipline_name, lesson_types.lesson_type_name, room_num, teacher_name  \
+                            FROM lessons\
+                            Join disciplines ON discipline_id = discipline\
+                            Join schedule_calls ON call_id = call_num\
+                            Join rooms On room_id = room\
+                            JOIN teachers On teacher = teacher_id\
+                            JOIN groups on group_id = group_num\
+                            JOIN lesson_types on lesson_type_id = lesson_type\
+                            WHERE groups.group_name = :group AND day = :day AND week = :week \
+                            order by schedule_calls.call_id"
+        cursor.execute(sqlite_select_Query, {'group':group, 'day':day_of_week, 'week': current_week})
+        record = cursor.fetchall()
+        cursor.close()
+        return format_lesson(record, day_of_week, week)
+    except:
+        print("No database")
+        return None
     
 def for_cache(): 
     try:
@@ -298,6 +323,20 @@ def week_sch(group):
             return None
     return res
 
+def all_weeks_schedule(group):
+    today = datetime.now(tz=time_zone)
+    day_of_week = today.isocalendar()[2]
+    days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+    res = {}
+    for i in range(6):
+        today = datetime.now(tz=time_zone) + dt.timedelta(days=i-day_of_week+1)
+        day = return_one_day(today, group)
+        if day:
+            res[days[i]] = day
+        else:
+            return None
+    return res
+
 def next_week_sch(group):
     today = datetime.now(tz=time_zone) + dt.timedelta(days=7)
     day_of_week = today.isocalendar()[2]
@@ -336,3 +375,22 @@ def full_sched(group):
     if cur_week(datetime.now(tz=time_zone))%2 == 1: 
         return {"first": res, "second": res2}
     return {"first": res2, "second": res}
+
+def get_schedule_by_week(group, week):
+    today = datetime.now(tz=time_zone)
+    day_of_week = today.isocalendar()[2]
+    days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+    res = {}
+    for i in range(6):
+        day = return_one_day_by_week(week, i, group)
+        if day:
+            res[days[i-1]] = day
+        else:
+            return None
+    return res
+
+def get_full_schedule(group):
+    schedule = []
+    for i in range(1, 18):
+        schedule.append(get_schedule_by_week(group, i))
+    return schedule if len(schedule) > 0 else None

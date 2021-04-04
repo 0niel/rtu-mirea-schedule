@@ -3,7 +3,7 @@ from flask import Flask, flash, request, redirect, url_for, session, jsonify, re
 import requests
 from os import environ  
 import datetime
-from schedule import today_sch, tomorrow_sch, week_sch, next_week_sch, get_groups, full_sched, for_cache
+from schedule import today_sch, tomorrow_sch, week_sch, next_week_sch, get_groups, full_sched, for_cache, get_full_schedule
 import sys
 
 sys.path.append('..')
@@ -78,8 +78,11 @@ def today(group):
             $ref: '#/definitions/Week'
           second:
             $ref: '#/definitions/Week'
-          
-      
+      AllWeeks:
+        type: array
+        items:
+          $ref: '#/definitions/Week'
+
       Number: 
         type: object
         properties:
@@ -168,7 +171,7 @@ def today(group):
 
 @app.route('/api/schedule/<string:group>/tomorrow', methods=["GET"])
 def tomorrow(group):
-    """Today's schedule for requested group
+    """Tomorrow's schedule for requested group
     ---
     parameters:
       - name: group
@@ -342,6 +345,33 @@ def full_schedule(group):
           description: Retry-After:100
   """
   sch = full_sched(group)
+  if sch:
+    response = jsonify(sch)
+    # return "today for{} is {}".format(group, res)
+    return make_response(response)
+  res = Response(headers={'Retry-After':200}, status=503)
+  return res 
+
+@app.route('/api/schedule/<string:group>/all_weeks', methods=["GET"])
+def get_all_weeks_schedule(group):
+  """Current week's schedule for requested group
+    ---
+    parameters:
+      - name: group
+        in: path
+        type: string
+        required: true
+      
+    responses:
+      200:
+        description: Return full schedule of one group. 
+        schema:
+          $ref: '#/definitions/AllWeeks'
+            
+      503:
+          description: Retry-After:100
+  """
+  sch = get_full_schedule(group)
   if sch:
     response = jsonify(sch)
     # return "today for{} is {}".format(group, res)
