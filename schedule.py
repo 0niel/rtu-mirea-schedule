@@ -62,7 +62,7 @@ def format_lesson(record, day_of_week, week, today):
         typ = lesson[3].split()
         typ.append('')
         less = lesson[2] 
-        if "кр." in less:
+        if "кр." in less or "кр " in less:
             exc = less.split("н.")[0]
             less = less.split("н.")[1].strip()
             regex_num = re.compile(r'\d+')
