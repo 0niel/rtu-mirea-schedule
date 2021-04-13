@@ -323,20 +323,6 @@ def week_sch(group):
             return None
     return res
 
-def all_weeks_schedule(group):
-    today = datetime.now(tz=time_zone)
-    day_of_week = today.isocalendar()[2]
-    days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
-    res = {}
-    for i in range(6):
-        today = datetime.now(tz=time_zone) + dt.timedelta(days=i-day_of_week+1)
-        day = return_one_day(today, group)
-        if day:
-            res[days[i]] = day
-        else:
-            return None
-    return res
-
 def next_week_sch(group):
     today = datetime.now(tz=time_zone) + dt.timedelta(days=7)
     day_of_week = today.isocalendar()[2]
