@@ -197,10 +197,10 @@ def return_one_day(today, group, alter_format = None):
         print("No database")
         return None
 
-def return_one_day_by_week(week, day_of_week, group, alter_format = None):
+def return_one_day_by_week(week, day_of_week, group):
     try:
         cursor = connect_to_sqlite()
-        if (week%2):
+        if (week % 2):
             current_week = 1
         else:
             current_week = 2
@@ -389,8 +389,8 @@ def get_schedule_by_week(group, week):
             return None
     return res
 
-def get_full_schedule(group):
+def get_full_schedule_by_weeks(group, max_weeks):
     schedule = []
-    for i in range(1, 18):
+    for i in range(1, max_weeks+1):
         schedule.append(get_schedule_by_week(group, i))
     return schedule if len(schedule) > 0 else None
