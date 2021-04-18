@@ -1,9 +1,9 @@
 from app import app
 from flask import Flask, flash, request, redirect, url_for, session, jsonify, render_template, make_response, Response
 import requests
-from os import environ  
+from os import environ
 import datetime
-from schedule import today_sch, tomorrow_sch, week_sch, next_week_sch, get_groups, full_sched, for_cache
+from schedule import today_sch, tomorrow_sch, week_sch, next_week_sch, get_groups, full_sched, for_cache, get_full_schedule_by_weeks, get_schedule_by_week
 import sys
 
 sys.path.append('..')
@@ -78,8 +78,11 @@ def today(group):
             $ref: '#/definitions/Week'
           second:
             $ref: '#/definitions/Week'
-          
-      
+      AllWeeks:
+        type: array
+        items:
+          $ref: '#/definitions/Week'
+
       Number: 
         type: object
         properties:
@@ -164,11 +167,11 @@ def today(group):
       # return "today for{} is {}".format(group, res)
       return make_response(response)
     res = Response(headers={'Retry-After':200}, status=503)
-    return res 
+    return res
 
 @app.route('/api/schedule/<string:group>/tomorrow', methods=["GET"])
 def tomorrow(group):
-    """Today's schedule for requested group
+    """Tomorrow's schedule for requested group
     ---
     parameters:
       - name: group
@@ -195,8 +198,8 @@ def tomorrow(group):
       # return "tomorrow for{} is {}".format(group, res)
       return make_response(response)
     res = Response(headers={'Retry-After':200}, status=503)
-    return res 
-    
+    return res
+
 @app.route('/api/schedule/<string:group>/week', methods=["GET"])
 def week(group):
     """Current week's schedule for requested group
@@ -273,7 +276,7 @@ def next_week(group):
       # return "tomorrow for{} is {}".format(group, res)
       return make_response(response)
     res = Response(headers={'Retry-After':200}, status=503)
-    return res 
+    return res
 
 @app.route('/refresh', methods=["POST"])
 def refresh():
@@ -321,7 +324,7 @@ def secret_refresh():
       return make_response({"status": 'wrong_password'}, 401)
     except:
       return make_response({"status": 'need_password'})
-  
+
 @app.route('/api/schedule/<string:group>/full_schedule', methods=["GET"])
 def full_schedule(group):
   """Current week's schedule for requested group
@@ -347,7 +350,69 @@ def full_schedule(group):
     # return "today for{} is {}".format(group, res)
     return make_response(response)
   res = Response(headers={'Retry-After':200}, status=503)
-  return res 
+  return res
+
+@app.route('/api/schedule/<string:group>/<int:max_weeks>/all_weeks', methods=["GET"])
+def get_all_weeks_schedule(group, max_weeks):
+  """Returns all weeks up to max_weeks
+    ---
+    parameters:
+      - name: group
+        in: path
+        type: string
+        required: true
+      - name: max_weeks
+        in: path
+        type: integer
+        required: true
+        description: The number of consecutive weeks returned
+      
+    responses:
+      200:
+        description: Return full schedule of one group. 
+        schema:
+          $ref: '#/definitions/AllWeeks'
+            
+      503:
+          description: Retry-After:100
+  """
+  sch = get_full_schedule_by_weeks(group, max_weeks)
+  if sch:
+    response = jsonify(sch)
+    return make_response(response)
+  res = Response(headers={'Retry-After': 200}, status=503)
+  return res
+
+@app.route('/api/schedule/<string:group>/<int:week>/week_num', methods=["GET"])
+def get_week_schedule_by_week_num(group, week):
+  """Returns week schedule by week number
+    ---
+    parameters:
+      - name: group
+        in: path
+        type: string
+        required: true
+      - name: week
+        in: path
+        type: integer
+        required: true
+      
+    responses:
+      200:
+        description: Return full schedule of one group. 
+        schema:
+          $ref: '#/definitions/Week'
+            
+      503:
+          description: Retry-After:100
+  """
+  sch = get_schedule_by_week(group, week)
+  if sch:
+    response = jsonify(sch)
+    return make_response(response)
+  res = Response(headers={'Retry-After': 200}, status=503)
+  return res
+
 
 @app.route('/api/schedule/schedule_for_cache', methods=["GET"])
 def schedule_for_cache():
