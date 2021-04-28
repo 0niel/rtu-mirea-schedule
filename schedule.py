@@ -21,6 +21,20 @@ rings = {
 
 time_zone = dt.timezone(offset, name='МСК')
 
+
+def is_trash(lesson):
+    """
+    Проверка названия занятия на мусорные символы 
+    :param lesson: название занятия (str)
+    :return: True, если занятия не существует (мусорные символы) и False, если оно существует
+    """
+    # рассчитываем, что в названии есть хотя бы одна буква русского алфавита
+    rus_letters = re.search(r'[а-я, А-Я]', lesson)
+    if rus_letters is None:
+        return True
+    return False
+
+
 def cur_week(today):
     if today.month<8:
         first = date(today.year, 2, 9)
@@ -33,6 +47,7 @@ def cur_week(today):
     if not (first_iso[2] == 7):
         week+=1
     return week
+
 
 def format_lesson(record, day_of_week, week, today=None):
     day = [{
@@ -62,6 +77,11 @@ def format_lesson(record, day_of_week, week, today=None):
         typ = lesson[3].split()
         typ.append('')
         less = lesson[2] 
+
+        if is_trash(less):
+            day[lesson[0]-1]["lesson"] = None
+            return day
+
         if "кр." in less or "кр " in less:
             exc = less.split("н.")[0]
             less = less.split("н.")[1].strip()
