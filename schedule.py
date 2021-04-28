@@ -29,7 +29,7 @@ def is_trash(lesson):
     :return: True, если занятия не существует (мусорные символы) и False, если оно существует
     """
     # рассчитываем, что в названии есть хотя бы одна буква русского алфавита
-    rus_letters = re.search(r'[а-я, А-Я]', lesson)
+    rus_letters = re.search(r'[а-яА-Я]', lesson)
     if rus_letters is None:
         return True
     return False
