@@ -7,7 +7,7 @@ template = {
   "info": {
     "title": "SCHEDULE-RTU",
     "description": "API for getting schedule for RTU MIREA",
-    "version": "0.1.1",
+    "version": "1.0.0",
     # "contact": {
     #   "name": "Kanoki",
     #   "url": "https://Kanoki.org",
