@@ -2,6 +2,8 @@
 Реализация класса Parser, с помощью которого осуществляется парсинг 
 расписания из документов и сохранение расписания в нужном формате в 
 базу данных Mongo
+
+Оригинальный автор: Vyacheslav (https://github.com/YaSlavar/parser_mirea)
 """
 import re
 import json
@@ -74,129 +76,11 @@ class Parser:
     # переменные среды
     max_weeks = 17
 
-    def __init__(self, path_to_error_log='errors/parser.log'):
+    def __init__(self, path_to_error_log='parser.log'):
         """Инициализация клсса
             src(str): Абсолютный путь к XLS файлу
         """
         self._logger = setup_logger(path_to_error_log, __name__)
-
-    @staticmethod
-    def is_trash(lesson: str):
-        """Проверка названия занятия на мусорные символы
-
-        Args:
-        -------
-            lesson (str): название занятия
-
-        Returns:
-        -------
-            bool: True, если занятия не существует (мусорные символы)
-                и False, если оно существует
-        """
-
-        # рассчитываем, что в названии есть хотя бы одна буква
-        # русского алфавита
-        if lesson is None or lesson == '':
-            return True
-        rus_letters = re.search(r'[а-яА-Я]', lesson)
-        if rus_letters is None:
-            return True
-        return False
-
-    @staticmethod
-    def get_lesson_weeks(lesson: str, is_even_number: bool):
-        """
-        Метод возвращает список недель, на которых данное занятие проходит.
-        Вернёт None, если занятие (название предмета) не является занятием. 
-
-        Note:
-            В качестве значения максимального кол-ва недель используется статическое поле
-            max_weeks класса Parser.
-
-        Examples
-        ----------
-        get_lesson_weeks("............", True) -> None
-
-        get_lesson_weeks("кр. 12 н. Математический анализ", True) -> [2, 4, 6, 8, 10, 14, 16]
-
-        get_lesson_weeks("3-10 н. Математический анализ", True) -> [4, 6, 8, 10]
-        
-        get_lesson_weeks("5 н. Математический анализ", True) -> []
-        
-        Параметры
-        ----------
-        lesson: str, обязательный
-            Название предмета из ячейки предмета
-        is_even_number: bool, обязательный
-            Стоит ли предмет на чётной неделе (II). True, если по чётным, False, если нет.
-        """
-
-        div_result = 0 if is_even_number else 1
-
-        if Parser.is_trash(lesson):
-            return None
-
-        # чтобы не триггериться на эту несчастную н-ку
-        lesson.replace('Ин.', '')
-        
-        # todo: реализовать выбор нужной информации с помощью регулярок
-        
-        # кр - кроме
-        # пример: "кр. 12 н. Математический анализ"
-        # пример: "кр. 13-15 н. Математический анализ"
-        if "кр." in lesson or "кр " in lesson:
-            # todo: кажется, что данная схема является нестабильной
-            # лучше верейти на какую-то регулярку
-            split_pattern = 'н.'
-            if ' н ' in lesson:
-                split_pattern = ' н '
-            elif ' нед ' in lesson:
-                split_pattern = ' нед '
-            elif ' нед. ' in lesson:
-                split_pattern = ' нед. '
-                
-            exclude = lesson.split(split_pattern)[0]
-            lesson = lesson.split(split_pattern)[1].strip()
-                
-            regex_num = re.compile(r'\d+')
-            # поиск всех вхождений чисел
-            exclude_weeks = [int(item) for item in regex_num.findall(exclude)]
-            if "-" in exclude:
-                exclude_weeks = [i for i in range(
-                    exclude_weeks[0], exclude_weeks[1]+1) if i % 2 == div_result]
-
-            weeks = []
-            for i in range(1, Parser.max_weeks+1):
-                if i not in exclude_weeks and i % 2 == div_result:
-                    weeks.append(i)
-            return weeks
-
-        # предмет без исключения недель
-        # пример: "11 н. Математический анализ"
-        # пример: "2,4,6,8,10 н. Математический анализ"
-        # пример: "3-10 н. Математический анализ"
-        elif " н." in lesson or " н " in lesson:
-            if " н." in lesson:
-                exc = lesson.split(" н.")[0]
-                lesson = lesson.split(" н.")[1].strip()
-            elif "н." in lesson:
-                exc = lesson.split("н.")[0]
-                lesson = lesson.split("н.")[1].strip()
-            elif " н " in lesson:
-                exc = lesson.split(" н ")[0]
-                lesson = lesson.split(" н ")[1].strip()
-            regex_num = re.compile(r'\d+')
-            weeks = [int(item) for item in regex_num.findall(exc)]
-
-            if "-" in exc:
-                weeks = [i for i in range(
-                    weeks[0], weeks[1]+1) if i % 2 == div_result]
-            if len(weeks) == 1:
-                if weeks[0] % 2 != div_result:
-                    return []
-            return weeks
-
-        return [i for i in range(1, Parser.max_weeks+1) if i % 2 == div_result]
 
     @staticmethod
     def get_day_num(day_name: str):
@@ -238,7 +122,93 @@ class Parser:
         """
         return Parser.months_dict[month_name.upper().replace(' ', '')]
 
-    def _format_other_cells(self, cell):
+    def _is_trash(self, lesson: str):
+        """Проверка названия занятия на мусорные символы
+
+        Args:
+        -------
+            lesson (str): название занятия
+
+        Returns:
+        -------
+            bool: True, если занятия не существует (мусорные символы)
+                и False, если оно существует
+        """
+
+        # рассчитываем, что в названии есть хотя бы одна буква
+        # русского алфавита
+        if lesson is None or lesson == '':
+            return True
+        rus_letters = re.search(r'[а-яА-Я]', lesson)
+        if rus_letters is None:
+            return True
+        return False
+
+    def _get_lesson_with_weeks(self, lesson: str, is_even_number: bool):
+        """
+        Метод возвращает список словарей, состоящих из названия 
+        предметов и списка недель, на которых данное занятие проходит.
+
+        Note:
+            В качестве значения максимального кол-ва недель 
+            используется статическое поле max_weeks класса Parser.
+
+        Examples
+        ----------
+        get_lesson_weeks("кр. 12 н. Математический анализ", True) -> 
+            -> [{'name': 'Математический анализ', 'weeks': [2, 4, 6, 8, 10, 14, 16]}]
+
+        get_lesson_weeks("3-10 н. Математический анализ", True) -> 
+            -> [{'name': 'Математический анализ', 'weeks': [4, 6, 8, 10]}]
+        
+        get_lesson_weeks("5 н. Математический анализ", True) -> 
+            -> [{'name': 'Математический анализ', 'weeks': []}]
+        
+        Параметры
+        ----------
+        lesson: str, обязательный
+            Название предмета из ячейки предмета
+        is_even_number: bool, обязательный
+            Стоит ли предмет на чётной неделе (II). True, если по чётным, False, если нет.
+        """
+
+        div_result = 0 if is_even_number else 1
+
+        lessons = []
+
+        formatted_names = self._format_lesson_name(lesson)
+        for formatted_lesson in formatted_names:
+            result = {'name': formatted_lesson['name'], 'weeks': []}
+            
+            if len(formatted_lesson['include']) == 0:
+                # если неделей включения не указаны, но указаны недели исключения
+                if len(formatted_lesson['except']) != 0:
+                    for i in range(1, self.max_weeks + 1):
+                        if i % 2 == div_result and i not in formatted_lesson['except']:
+                            result['weeks'].append(i)
+                # если не указаны ни недели включения, ни недели исключения,
+                # следовательно, пара идёт всегда
+                else:
+                    for i in range(1, self.max_weeks + 1):
+                        if i % 2 == div_result:
+                            result['weeks'].append(i)
+                            
+            # указаны недели включения
+            else:
+                if len(formatted_lesson['except']) == 0:
+                    for i in formatted_lesson['include']:
+                        if i % 2 == div_result:
+                            result['weeks'].append(i)
+                # указаны и недели включения и недели исключения
+                else:
+                    for i in formatted_lesson['include']:
+                        if i % 2 == div_result and i not in formatted_lesson['except']:
+                            result['weeks'].append(i)
+            lessons.append(result)             
+
+        return lessons
+    
+    def _format_other(self, cell):
         """
         Разделение строки по "\n"
         :param cell:
@@ -247,20 +217,21 @@ class Parser:
         cell = cell.split("\n")
         return cell
 
-    def _format_teacher_name(self, teachers_names):
+    def _format_teacher_name(self, teachers_names):      
         """Форматирование имён учителей в нужный формат. Возвращает список учителей.
         Если в качестве значения ячейки указаны 2 преподавателя, то вернёт список из двух элементов.
 
-        Примеры
+        Examples
         ----------
         format_teacher_name('Бишаев А.М.  Коробкин Ю.В.') -> ['Бишаев А.М.', 'Коробкин Ю.В.']
         
         format_teacher_name('Бишаев А.М.\nКоробкин Ю.В.') -> ['Бишаев А.М.', 'Коробкин Ю.В.']
         
-        Параметры
-        ----------
-        teachers_names: str, обязательный
-            Имена преподавателя: значение ячейки с информацией о преподавателях.
+        Args:
+            teachers_names (str): Имена преподавателя: значение ячейки с информацией о преподавателях
+
+        Returns:
+            list: Список имён преподавателей
         """
 
         teachers_names = str(teachers_names)
@@ -280,31 +251,128 @@ class Parser:
 
         return re.split(r' {2,}|\n', string)
 
-    def _format_lesson_name(self, lesson: str):
-        """
-        Возвращает только название предмета (без списка недель)
+    def _format_lesson_name(self, temp_name: str):
+        """Разбор строки 'Предмет' на название дисциплины и номера
+        недель включения и исключения
 
-        
-        Args
+        Args:
         ----------
-        lesson: str, обязательный
-            Название предмета из ячейки предмета
+            temp_name (str): Полная стока названия предмета
+            
+        Returns:
+        ----------
+            Возвращает список, состоящий из словарей, которые содержат
+            полное название предмета (без списка недель), список недель, на 
+            которых предмет проходит и список недель, на которых предмет
+            не проходит.
+            
+        Examples:
+        ----------
+            format_name("Деньги, кредит, банки кр. 2,8,10 н.") ->
+                -> [{'name': 'Деньги, кредит, банки', 'include': [],
+                     'except': [2, 8, 10]}
+            
+            format_name("1,5,9,13 н Оперционные системы\n3,7,11,15 н  Оперционные системы")
+                -> [{'name': 'Оперционные системы', 'include': [1, 5, 9, 13], 'except': []},
+                    {'name': 'Оперционные системы', 'include': [3, 7, 11, 15], 'except': []}]
         """
-        if Parser.is_trash(lesson):
-            return None
 
-        # удаляем исключающую недели скобку
-        # пример: Мант. анализ (кр. 10,12,14,16, 18 н.)
-        lesson = re.sub(r"\(кр.*(.+)\d(.*)н.?\)", "", lesson)
-        # пример: Ин. яз. кр. 15 н.
-        lesson = re.sub(r'кр(.*\d.?)н.?', '', lesson)
-        # пример: 3,7,11,15 н. Философия
-        lesson = re.sub(r'\d.*?н.?', '', lesson)
+        def if_diapason_week(lesson_string):
+            start_week = re.findall(r"\d+\s+-", lesson_string)
+            start_week = re.sub("-", "", start_week[0])
+            end_week = re.findall(r"-\d+\s+", lesson_string)
+            end_week = re.sub("-", "", end_week[0])
+            weeks = []
+            for week in range(int(start_week), int(end_week) + 1):
+                weeks.append(week)
+            return weeks
 
-        lesson = lesson.strip()
+        result = []
+        temp_name = temp_name.replace(" ", "  ")
+        temp_name = temp_name.replace(";", ";  ")
+
+        temp_name = re.sub(r"(\s+-\s+(?:лк|пр)(?:;|))", "", temp_name, flags=re.A)
+        substr = re.findall(r"(\s+н(?:\.|)\s+)\d+", temp_name)
+        if substr:
+            temp_name = re.sub(substr[0], " ", temp_name, flags=re.A)
+
+        temp_name = re.sub(r"(\d+)", r"\1 ", temp_name, flags=re.A)
+        temp_name = re.sub(r"(кр\. {2,})", "кр.", temp_name, flags=re.A)
+        temp_name = re.sub(r"((, *|)кроме {1,})", " кр.", temp_name, flags=re.A)
+        temp_name = re.sub(r"(н[\d,. ]*[+;])", "", temp_name, flags=re.A)
+
+        temp_name = re.findall(
+            r"((?:\s*[\W\s]*)(?:|кр[ .]\s*|\d+\s+-\d+\s+|[\d,. ]*)\s*\s*(?:|[\W\s]*|\D*)*)(?:\s\s|\Z|\n)",
+            temp_name, flags=re.A)
+        if isinstance(temp_name, list):
+            for item in temp_name:
+                if len(item) > 0:
+                    if_except = re.search(r"(кр[. \w])", item, flags=re.A)
+                    if_include = re.search(r"( н[. ])|(н[. ])|(\d\s\W)|(\d+\s+\D)", item, flags=re.A)
+                    _except = []
+                    _include = []
+                    item = re.sub(r"\(", "", item, flags=re.A)
+                    item = re.sub(r"\)", "", item, flags=re.A)
+                    if if_except:
+                        if re.search(r"\d+\s+-\d+\s+", item, flags=re.A):
+                            _except = if_diapason_week(item)
+                            item = re.sub(r"\d+\s+-\d+\s+", "", item, flags=re.A)
+
+                        else:
+                            _except = re.findall(r"(\d+)", item, flags=re.A)
+                        item = re.sub(r"(кр[. \w])", "", item, flags=re.A)
+                        item = re.sub(r"(\d+[,. н]+)", "", item, flags=re.A)
+                        name = re.sub(r"( н[. ])", "", item, flags=re.A)
+
+                    elif if_include:
+                        # Если найдена вложенность
+                        subname = re.findall(r"[\d,. ]*н[\.]\s+-\s+(?:лк|пр)", item)
+                        if re.search(r"\d+\s+-\d+\s+", item):
+                            _include = if_diapason_week(item)
+                            item = re.sub(r"\d+\s+-\d+\s+", "", item, flags=re.A)
+
+                        # elif isinstance(subname, list):
+                        #     # Цикл по вложенности
+                        #     for i_sub in subname:
+                        #         _include = re.findall(r"(\d+)", i_sub, flags=re.A)
+                        #         item = re.sub(r"(\d+[;,. (?:н|нед)]+)", "", item, flags=re.A)
+                        #         name = re.sub(r"((?:н|нед)[. ])", "", item, flags=re.A)
+                        #         name = name.replace("  ", " ")
+                        #         name = name.strip()
+                        #         one_str = [name, _include, _except]
+                        #         result.append(one_str)
+                        #     return result
+
+                        else:
+                            _include = re.findall(r"(\d+)", item, flags=re.A)
+
+                        item = re.sub(r"(\d+[;,. (?:н|нед)]+)", "", item, flags=re.A)
+                        name = re.sub(r"((?:н|нед)[. ])", "", item, flags=re.A)
+
+                    else:
+                        name = item
+                    # name = re.sub(r"  ", " ", name)
+                    name = name.replace("  ", " ")
+                    name = name.strip()
+                    
+                    # приводим номера недель к целочисленному типу
+                    _include = [int(item) for item in _include]
+                    _except = [int(item) for item in _except]
+                    
+                    one_str = {'name': name, 'include': _include, 'except': _except}
+                    result.append(one_str)
         
-        return lesson
-
+        # разбираем случай по типу 1-17 н. (кр. 3 н.) Архитектура утройств и систем вычислительной техники
+        if len(result) == 2:
+            if result[0]['name'] == '' and result[1]['name'] != '':
+                result_new = [{}]
+                result_new[0]['name'] = result[1]['name']
+                result_new[0]['include'] = result[0]['include']
+                result_new[0]['except'] = result[1]['except']
+                result = result_new
+        
+        return result
+    
     def _get_lesson_num_from_time(self, time_str):
         if time_str in self.time_dict:
             return self.time_dict[time_str]
@@ -386,28 +454,36 @@ class ExcelParser(Parser):
                 # Получение данных об одной паре
                 lesson_name = str(sheet.cell(
                     string_index, discipline_col_num).value)
-                lesson_name_clear = self._format_lesson_name(lesson_name)
-                is_even_number = True if week_num == 2 else False
-                lesson_weeks = Parser.get_lesson_weeks(
-                    lesson_name, is_even_number)
                 lesson_type = sheet.cell(
                     string_index, discipline_col_num + 1).value
                 teacher = self._format_teacher_name(sheet.cell(
                     string_index, discipline_col_num + 2).value)
                 room = self._format_room_name(sheet.cell(
                     string_index, discipline_col_num + 3).value)
-
-                one_lesson = {"weeks": lesson_weeks, "time": time_, "name": lesson_name_clear,
-                              "type": lesson_type, "teacher": teacher, "room": room}
+                # стоит ли предмет на чётной неделе или нет
+                is_even_number = True if week_num == 2 else False
+                
+                lesson_with_weeks = self._get_lesson_with_weeks(
+                    lesson_name, is_even_number)
+                
+                for i in range(len(lesson_with_weeks)):
+                    if teacher:
+                        teacher = teacher[i] if len(teacher)-1 >= i else teacher[0]
+                    if room:
+                        room = room[i] if len(room)-1 >= i else room[0]
+                        
+                    one_lesson = {"name": lesson_with_weeks[i]['name'], 
+                                  "weeks": lesson_with_weeks[i]['weeks'], 
+                                  "time": time_, 
+                                  "type": lesson_type, 
+                                  "teacher": teacher, "room": room}
 
                 # инициализация списка
                 if lesson_num not in one_day['lessons']:
                     one_day['lessons'][lesson_num] = []
                     
-                if Parser.is_trash(lesson_name) is False:
+                if self._is_trash(lesson_name) is False:
                     one_day['lessons'][lesson_num].append(one_lesson)
-                else:
-                    one_day['lessons'][lesson_num].append(None)
                     
                 # Объединение расписания
                 one_group[day_num] = one_day
@@ -439,7 +515,7 @@ class ExcelParser(Parser):
                     lesson_type_index, discipline_col_num).value
                 dist_name = sheet.cell(
                     dist_name_index, discipline_col_num).value
-                teacher = self._format_teacher_name(sheet.cell(
+                teacher = self.format_teacher_name(sheet.cell(
                     teacher_name_index, discipline_col_num).value)
 
             time = sheet.cell(string_index, discipline_col_num + 1).value
@@ -490,7 +566,7 @@ class ExcelParser(Parser):
     def parse(self):
         """Чтение excel документа и парсинг данных из него в базу MongoDB
         """
-        def get_column_range_for_type_eq_semester(xlsx_sheet, group_name_cell, group_name_row_index):
+        def get_semester_column_range(xlsx_sheet, group_name_cell, group_name_row_index):
             """Получение диапазона ячеек недели для типа расписания = семестр
 
             Args:
@@ -591,7 +667,7 @@ class ExcelParser(Parser):
                     week_range[day_num_val].append(lesson_range)
             return week_range
 
-        def get_column_range_for_type_eq_exam(xlsx_sheet, group_name_cell, group_name_row_index):
+        def get_exam_column_range(xlsx_sheet, group_name_cell, group_name_row_index):
             """
             Получение диапазона ячеек недели для типа расписания = экзамен
             :param group_name_row_index: 
@@ -696,11 +772,11 @@ class ExcelParser(Parser):
                     # обновляем column_range, если левее группы нет
                     # разметки с неделями, используем старый
                     if not group_list and self.__doc_type != DOC_TYPE_EXAM:
-                        column_range = get_column_range_for_type_eq_semester(
+                        column_range = get_semester_column_range(
                             sheet, group_cell, group_name_row_num)
 
                     elif not group_list and self.__doc_type == DOC_TYPE_EXAM:
-                        column_range = get_column_range_for_type_eq_exam(
+                        column_range = get_exam_column_range(
                             sheet, group_cell, group_name_row_num)
 
                     group_list.append(group.group(0))

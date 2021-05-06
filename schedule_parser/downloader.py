@@ -22,7 +22,7 @@ class Downloader:
     
     Methods
     -------
-    start(self)
+    run(self)
         Главный метод, который реализует скачивание файлов с сайта
     download_file(self, url: str, file_path='', attempts=2)
         Загрузка файла по пути file_path с помощью прямого URL на него. 
@@ -225,4 +225,4 @@ class Downloader:
                     count_file += 1
 
             except Exception as ex:
-                self._logger.error(f'[{url_file}] message:' + ex)
+                self._logger.error(f'[{url_file}] message:' + str(ex))
