@@ -308,7 +308,7 @@ class Parser:
             for item in temp_name:
                 if len(item) > 0:
                     if_except = re.search(r"(кр[. \w])", item, flags=re.A)
-                    if_include = re.search(r"( н[. ])|(н[. ])|(\d\s\W)|(\d+\s+\D)", item, flags=re.A)
+                    if_include = re.search(r"((^|\s)н[. ])|(\d\s\W)|(\d+\s+\D)", item, flags=re.A)
                     _except = []
                     _include = []
                     item = re.sub(r"\(", "", item, flags=re.A)

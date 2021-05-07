@@ -139,6 +139,14 @@ class FormatterTests(unittest.TestCase):
                            'include': [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
                            'except': []}]
         self.assertEqual(result, correct_result)
+        
+    def test_example_16(self):
+        result = self.parser._format_lesson_name(
+            "Ин. яз")
+        correct_result = [{'name': 'Ин. яз',
+                           'include': [],
+                           'except': []}]
+        self.assertEqual(result, correct_result)
 
 
     def test_format_teacher_name_example_1(self):
