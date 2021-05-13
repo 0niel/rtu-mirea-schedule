@@ -35,3 +35,8 @@ def get_current_week(today):
 def get_full_schedule(group_name):
     schedule = semester_collection.find_one({'group': group_name}, {'_id': 0})
     return schedule
+
+
+def get_groups_list():
+    groups = list(semester_collection.find({}, {'group': 1, '_id': 0}))
+    return [group['group'] for group in groups]
