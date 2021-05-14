@@ -1,5 +1,8 @@
 version: '3.8'
 
+volumes: 
+  mongodb_volume:
+
 services:
   mongodb:
     image: mongo:latest
