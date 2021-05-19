@@ -280,6 +280,7 @@ class Parser:
         def if_diapason_week(lesson_string):
             start_week = re.findall(r"\d+\s+-", lesson_string)
             start_week = re.sub("-", "", start_week[0])
+
             end_week = re.findall(r"-\d+\s+", lesson_string)
             end_week = re.sub("-", "", end_week[0])
             weeks = []
@@ -295,7 +296,6 @@ class Parser:
         substr = re.findall(r"(\s+н(?:\.|)\s+)\d+", temp_name)
         if substr:
             temp_name = re.sub(substr[0], " ", temp_name, flags=re.A)
-
         temp_name = re.sub(r"(\d+)", r"\1 ", temp_name, flags=re.A)
         temp_name = re.sub(r"(кр\. {2,})", "кр.", temp_name, flags=re.A)
         temp_name = re.sub(r"((, *|)кроме {1,})", " кр.", temp_name, flags=re.A)
@@ -442,14 +442,14 @@ class ExcelParser(Parser):
                 # приведение к строке нужно из-за того, что 
                 # bson формат не умеет кушать нестроковые ключи
                 day_num = str(day_num)
-                lesson_num = str(lesson_range[0])
+                lesson_num = lesson_range[0]
                 time_ = lesson_range[1]
                 week_num = lesson_range[2]
                 string_index = lesson_range[3]
 
                 # Перебор одного дня (1-6 пара)
                 if 'lessons' not in one_day:
-                    one_day['lessons'] = {}
+                    one_day['lessons'] = []
 
                 # Получение данных об одной паре
                 lesson_name = str(sheet.cell(
@@ -479,11 +479,11 @@ class ExcelParser(Parser):
                                   "teacher": teacher, "room": room}
 
                 # инициализация списка
-                if lesson_num not in one_day['lessons']:
-                    one_day['lessons'][lesson_num] = []
+                if len(one_day['lessons']) < lesson_num:
+                    one_day['lessons'].append([])
                     
                 if self._is_trash(lesson_name) is False:
-                    one_day['lessons'][lesson_num].append(one_lesson)
+                    one_day['lessons'][lesson_num - 1].append(one_lesson)
                     
                 # Объединение расписания
                 one_group[day_num] = one_day
