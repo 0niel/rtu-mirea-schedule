@@ -429,8 +429,15 @@ class ExcelParser(Parser):
         range(dict): Диапазон выбора ячеек
         """
         # Название группы
-        group_name = sheet.cell(
+        group = sheet.cell(
             group_name_row_num, discipline_col_num).value
+        group_name = re.search(r'[А-Яа-я]{4}-[0-9]{2}-[0-9]{2}', group)
+        
+        if group_name is None:
+            raise ValueError("Group name is none. Cell value: {}", format(group))
+        
+        group_name = group_name.group(0)
+        
         # Инициализация словаря
         one_group = {}
 
