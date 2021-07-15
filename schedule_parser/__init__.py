@@ -1,8 +1,6 @@
 import logging
 import sys
-import sys
 import os.path
-import json
 
 
 def setup_logger(path_to_error_log, logger_name):
@@ -48,7 +46,7 @@ def start_parsing():
     downloader.run()
     # директория, в которой хранятся excel документы
     xlsx_dir = 'xls/'
-    for path, dirs, files in os.walk(xlsx_dir):
+    for path, _, files in os.walk(xlsx_dir):
         for file_name in files:
             # todo: вынести проверку актуальности документа
             # в отдельный метод

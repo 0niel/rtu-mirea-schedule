@@ -6,19 +6,11 @@
 Оригинальный автор: Vyacheslav (https://github.com/YaSlavar/parser_mirea)
 """
 import re
-import json
-import csv
-import sqlite3
+from schedule_data.schedule import Schedule
 import os.path
-import subprocess
 import datetime
-from itertools import cycle
-from sqlite3.dbapi2 import Connection
-import traceback
 import xlrd
-import time
 from schedule_parser import setup_logger
-from database import semester_collection, exam_collection
 
 
 class Parser:
@@ -796,11 +788,10 @@ class ExcelParser(Parser):
                             sheet, group_name_row.index(group_cell),
                             group_name_row_num, column_range
                         )
-                        semester_collection.update_one(
-                            {'group': one_time_table['group']},
-                            {'$set': {'group': one_time_table['group'],
-                                      'schedule':  one_time_table['schedule']}},
-                            upsert=True)
+
+                        Schedule.save(
+                            one_time_table['group'], one_time_table['schedule'])
+
                     else:
                         # По номеру столбца
                         one_time_table = self.__read_one_group_for_exam(

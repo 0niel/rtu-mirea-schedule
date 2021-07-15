@@ -4,7 +4,7 @@
 from pymongo import MongoClient
 
 
-client = MongoClient('mongodb://mongodb:27017/')
+client = MongoClient('mongodb://127.0.0.1:27017/')
 db = client['schedule']
 
 # коллекция, в которой хранится актуальное расписание

@@ -1,7 +1,7 @@
 from schedule_parser import start_parsing
 from app import app
 from flask import Flask, flash, request, make_response, Response
-from schedule import get_full_schedule, get_groups_list
+from schedule_data.schedule import Schedule
 import sys
 
 sys.path.append('..')
@@ -42,7 +42,7 @@ def full_schedule(group):
       503:
           description: Retry-After:100
     """
-    full_schedule = get_full_schedule(group)
+    full_schedule = Schedule.get_full_schedule(group)
     if full_schedule:
         return make_response(full_schedule)
     
@@ -61,7 +61,7 @@ def groups_list():
       503:
           description: Retry-After:100
     """
-    groups_list = get_groups_list()
+    groups_list = Schedule.get_groups_list()
     if groups_list:
         return make_response({'groups': groups_list, 'count': len(groups_list)})
     

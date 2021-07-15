@@ -5,11 +5,9 @@
 import requests
 import os
 import os.path
-import datetime
 import re
 import ssl
 import certifi
-import sys
 import time
 from urllib import request
 from bs4 import BeautifulSoup
@@ -149,7 +147,7 @@ class Downloader:
                 self._logger.error(
                     f'Download attempt #{attempt} ({url}) \
                     failed with error: {ex}'
-                    )
+                )
 
     def run(self):
         """
