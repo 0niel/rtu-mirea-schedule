@@ -362,7 +362,7 @@ class Parser:
                     one_str = {'name': name, 'include': _include, 'except': _except}
                     result.append(one_str)
         
-        # разбираем случай по типу 1-17 н. (кр. 3 н.) Архитектура утройств и систем вычислительной техники
+        # разбираем случай по типу: "1-17 н. (кр. 3 н.) Архитектура утройств и систем вычислительной техники"
         if len(result) == 2:
             if result[0]['name'] == '' and result[1]['name'] != '':
                 result_new = [{}]
