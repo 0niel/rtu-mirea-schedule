@@ -179,7 +179,7 @@ class Parser:
         formatted_names = self._format_lesson_name(lesson)
         for formatted_lesson in formatted_names:
             result = {'name': formatted_lesson['name'], 'weeks': []}
-            
+
             if len(formatted_lesson['include']) == 0:
                 # если неделей включения не указаны, но указаны недели исключения
                 if len(formatted_lesson['except']) != 0:
@@ -192,7 +192,7 @@ class Parser:
                     for i in range(1, self.max_weeks + 1):
                         if i % 2 == div_result:
                             result['weeks'].append(i)
-                            
+
             # указаны недели включения
             else:
                 if len(formatted_lesson['except']) == 0:
@@ -204,10 +204,10 @@ class Parser:
                     for i in formatted_lesson['include']:
                         if i % 2 == div_result and i not in formatted_lesson['except']:
                             result['weeks'].append(i)
-            lessons.append(result)             
+            lessons.append(result)
 
         return lessons
-    
+
     def _format_other(self, cell):
         """
         Разделение строки по "\n"
@@ -217,7 +217,7 @@ class Parser:
         cell = cell.split("\n")
         return cell
 
-    def _format_teacher_name(self, teachers_names):      
+    def _format_teacher_name(self, teachers_names):
         """Форматирование имён учителей в нужный формат. Возвращает список учителей.
         Если в качестве значения ячейки указаны 2 преподавателя, то вернёт список из двух элементов.
 
@@ -292,13 +292,15 @@ class Parser:
         temp_name = temp_name.replace(" ", "  ")
         temp_name = temp_name.replace(";", ";  ")
 
-        temp_name = re.sub(r"(\s+-\s+(?:лк|пр)(?:;|))", "", temp_name, flags=re.A)
+        temp_name = re.sub(r"(\s+-\s+(?:лк|пр)(?:;|))",
+                           "", temp_name, flags=re.A)
         substr = re.findall(r"(\s+н(?:\.|)\s+)\d+", temp_name)
         if substr:
             temp_name = re.sub(substr[0], " ", temp_name, flags=re.A)
         temp_name = re.sub(r"(\d+)", r"\1 ", temp_name, flags=re.A)
         temp_name = re.sub(r"(кр\. {2,})", "кр.", temp_name, flags=re.A)
-        temp_name = re.sub(r"((, *|)кроме {1,})", " кр.", temp_name, flags=re.A)
+        temp_name = re.sub(
+            r"((, *|)кроме {1,})", " кр.", temp_name, flags=re.A)
         temp_name = re.sub(r"(н[\d,. ]*[+;])", "", temp_name, flags=re.A)
 
         temp_name = re.findall(
@@ -308,7 +310,8 @@ class Parser:
             for item in temp_name:
                 if len(item) > 0:
                     if_except = re.search(r"(кр[. \w])", item, flags=re.A)
-                    if_include = re.search(r"((^|\s)н[. ])|(\d\s\W)|(\d+\s+\D)", item, flags=re.A)
+                    if_include = re.search(
+                        r"((^|\s)н[. ])|(\d\s\W)|(\d+\s+\D)", item, flags=re.A)
                     _except = []
                     _include = []
                     item = re.sub(r"\(", "", item, flags=re.A)
@@ -316,7 +319,8 @@ class Parser:
                     if if_except:
                         if re.search(r"\d+\s+-\d+\s+", item, flags=re.A):
                             _except = if_diapason_week(item)
-                            item = re.sub(r"\d+\s+-\d+\s+", "", item, flags=re.A)
+                            item = re.sub(r"\d+\s+-\d+\s+",
+                                          "", item, flags=re.A)
 
                         else:
                             _except = re.findall(r"(\d+)", item, flags=re.A)
@@ -326,10 +330,12 @@ class Parser:
 
                     elif if_include:
                         # Если найдена вложенность
-                        subname = re.findall(r"[\d,. ]*н[\.]\s+-\s+(?:лк|пр)", item)
+                        subname = re.findall(
+                            r"[\d,. ]*н[\.]\s+-\s+(?:лк|пр)", item)
                         if re.search(r"\d+\s+-\d+\s+", item):
                             _include = if_diapason_week(item)
-                            item = re.sub(r"\d+\s+-\d+\s+", "", item, flags=re.A)
+                            item = re.sub(r"\d+\s+-\d+\s+",
+                                          "", item, flags=re.A)
 
                         # elif isinstance(subname, list):
                         #     # Цикл по вложенности
@@ -346,7 +352,8 @@ class Parser:
                         else:
                             _include = re.findall(r"(\d+)", item, flags=re.A)
 
-                        item = re.sub(r"(\d+[;,. (?:н|нед)]+)", "", item, flags=re.A)
+                        item = re.sub(
+                            r"(\d+[;,. (?:н|нед)]+)", "", item, flags=re.A)
                         name = re.sub(r"((?:н|нед)[. ])", "", item, flags=re.A)
 
                     else:
@@ -354,14 +361,15 @@ class Parser:
                     # name = re.sub(r"  ", " ", name)
                     name = name.replace("  ", " ")
                     name = name.strip()
-                    
+
                     # приводим номера недель к целочисленному типу
                     _include = [int(item) for item in _include]
                     _except = [int(item) for item in _except]
-                    
-                    one_str = {'name': name, 'include': _include, 'except': _except}
+
+                    one_str = {'name': name,
+                               'include': _include, 'except': _except}
                     result.append(one_str)
-        
+
         # разбираем случай по типу: "1-17 н. (кр. 3 н.) Архитектура утройств и систем вычислительной техники"
         if len(result) == 2:
             if result[0]['name'] == '' and result[1]['name'] != '':
@@ -370,9 +378,9 @@ class Parser:
                 result_new[0]['include'] = result[0]['include']
                 result_new[0]['except'] = result[1]['except']
                 result = result_new
-        
+
         return result
-    
+
     def _get_lesson_num_from_time(self, time_str):
         if time_str in self.time_dict:
             return self.time_dict[time_str]
@@ -439,7 +447,7 @@ class ExcelParser(Parser):
         for day_num in cell_range:
             one_day = {}
             for lesson_range in cell_range[day_num]:
-                # приведение к строке нужно из-за того, что 
+                # приведение к строке нужно из-за того, что
                 # bson формат не умеет кушать нестроковые ключи
                 day_num = str(day_num)
                 lesson_num = lesson_range[0]
@@ -462,29 +470,30 @@ class ExcelParser(Parser):
                     string_index, discipline_col_num + 3).value)
                 # стоит ли предмет на чётной неделе или нет
                 is_even_number = True if week_num == 2 else False
-                
+
                 lesson_with_weeks = self._get_lesson_with_weeks(
                     lesson_name, is_even_number)
-                
+
                 for i in range(len(lesson_with_weeks)):
                     if teacher:
-                        teacher = teacher[i] if len(teacher)-1 >= i else teacher[0]
+                        teacher = teacher[i] if len(
+                            teacher)-1 >= i else teacher[0]
                     if room:
                         room = room[i] if len(room)-1 >= i else room[0]
-                        
-                    one_lesson = {"name": lesson_with_weeks[i]['name'], 
-                                  "weeks": lesson_with_weeks[i]['weeks'], 
-                                  "time": time_, 
-                                  "type": lesson_type, 
+
+                    one_lesson = {"name": lesson_with_weeks[i]['name'],
+                                  "weeks": lesson_with_weeks[i]['weeks'],
+                                  "time": time_,
+                                  "type": lesson_type,
                                   "teacher": teacher, "room": room}
 
                 # инициализация списка
                 if len(one_day['lessons']) < lesson_num:
                     one_day['lessons'].append([])
-                    
+
                 if self._is_trash(lesson_name) is False:
                     one_day['lessons'][lesson_num - 1].append(one_lesson)
-                    
+
                 # Объединение расписания
                 one_group[day_num] = one_day
 
@@ -515,7 +524,7 @@ class ExcelParser(Parser):
                     lesson_type_index, discipline_col_num).value
                 dist_name = sheet.cell(
                     dist_name_index, discipline_col_num).value
-                teacher = self.format_teacher_name(sheet.cell(
+                teacher = self._format_teacher_name(sheet.cell(
                     teacher_name_index, discipline_col_num).value)
 
             time = sheet.cell(string_index, discipline_col_num + 1).value
@@ -784,14 +793,14 @@ class ExcelParser(Parser):
                     if self.__doc_type != DOC_TYPE_EXAM:
                         # По номеру столбца
                         one_time_table = self.__read_one_group_for_semester(
-                            sheet, group_name_row.index(group_cell), 
+                            sheet, group_name_row.index(group_cell),
                             group_name_row_num, column_range
-                            )
+                        )
                         semester_collection.update_one(
-                            {'group': one_time_table['group']}, 
+                            {'group': one_time_table['group']},
                             {'$set': {'group': one_time_table['group'],
-                                    'schedule':  one_time_table['schedule']}}, 
-                                        upsert=True)
+                                      'schedule':  one_time_table['schedule']}},
+                            upsert=True)
                     else:
                         # По номеру столбца
                         one_time_table = self.__read_one_group_for_exam(
