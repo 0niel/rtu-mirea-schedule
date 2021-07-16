@@ -18,14 +18,14 @@ class Schedule:
     }
 
     @staticmethod
-    def save(group, schedule):
+    async def save(group, schedule):
         """Сохранение или обновление расписания группы.
 
         Args:
             group (str): название группы
             schedule (dict): словарь расписания для каждого дня недели
         """
-        semester_collection.update_one(
+        await semester_collection.update_one(
             {'group': group},
             {'$set': {'group': group,
                       'schedule':  schedule}},
@@ -47,12 +47,13 @@ class Schedule:
         return week
 
     @staticmethod
-    def get_full_schedule(group_name):
-        schedule = semester_collection.find_one(
+    async def get_full_schedule(group_name):
+        schedule = await semester_collection.find_one(
             {'group': group_name}, {'_id': 0})
         return schedule
 
     @staticmethod
-    def get_groups_list():
-        groups = list(semester_collection.find({}, {'group': 1, '_id': 0}))
+    async def get_groups_list():
+        cursor = semester_collection.find({}, {'group': 1, '_id': 0})
+        groups = await cursor.to_list(None)
         return [group['group'] for group in groups]
