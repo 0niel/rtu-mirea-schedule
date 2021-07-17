@@ -1,69 +1,32 @@
+from app.models import GroupsListModel, ScheduleModel
 from schedule_parser import start_parsing
 from app import app
-from flask import Flask, flash, request, make_response, Response
 from schedule_data.schedule import Schedule
+from fastapi import FastAPI, Body, HTTPException, status
+from fastapi.responses import JSONResponse
 import sys
 
 sys.path.append('..')
 
 
-@app.route('/refresh', methods=["POST"])
-def refresh():
-    """Refresh shedule
-    ---
-
-    responses:
-      200:
-        description: Return \'ok\' after updating
-        schema:
-          type: object
-          properties:
-            status:
-              type: string
-    """
+@app.post('/refresh', description='Refresh shedule', response_description='Return \'ok\' after updating',)
+async def refresh():
     start_parsing()
-    return make_response({"status": 'ok'})
+    return JSONResponse({"status": 'ok'})
 
 
-@app.route('/api/schedule/<string:group>/full_schedule', methods=["GET"])
-def full_schedule(group):
-    """Current week's schedule for requested group
-    ---
-    parameters:
-      - name: group
-        in: path
-        type: string
-        required: true
-      
-    responses:
-      200:
-        description: Return full schedule of one group. 
-            
-      503:
-          description: Retry-After:100
-    """
-    full_schedule = Schedule.get_full_schedule(group)
+@app.get('/api/schedule/{group}/full_schedule', response_description="Return full schedule of one group", response_model=ScheduleModel)
+async def full_schedule(group: str):
+    full_schedule = await Schedule.get_full_schedule(group)
     if full_schedule:
-        return make_response(full_schedule)
+        return JSONResponse(full_schedule)
     
-    res = Response(headers={'Retry-After': 200}, status=503)
-    return res
+    raise HTTPException(headers={'Retry-After': 200}, status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
   
-@app.route('/api/schedule/groups', methods=["GET"])
-def groups_list():
-    """All groups list
-    ---
-      
-    responses:
-      200:
-        description: Return full schedule of one group. 
-            
-      503:
-          description: Retry-After:100
-    """
-    groups_list = Schedule.get_groups_list()
+@app.get('/api/schedule/groups', response_description="List of all groups", response_model=GroupsListModel)
+async def groups_list():
+    groups_list = await Schedule.get_groups_list()
     if groups_list:
-        return make_response({'groups': groups_list, 'count': len(groups_list)})
+        return JSONResponse({'groups': groups_list, 'count': len(groups_list)})
     
-    res = Response(headers={'Retry-After': 200}, status=503)
-    return res
+    raise HTTPException(headers={'Retry-After': 200}, status_code=status.HTTP_503_SERVICE_UNAVAILABLE)

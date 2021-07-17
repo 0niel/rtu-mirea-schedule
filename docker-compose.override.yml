@@ -12,7 +12,6 @@ services:
       - 27017:27017
     volumes: 
       - mongodb_volume:/data/db
-    restart: always
   api:
     build: ./
     ports:

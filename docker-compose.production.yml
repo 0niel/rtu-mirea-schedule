@@ -1,48 +1,65 @@
 version: '3.8'
 
-services:
-  api:
-    networks:
-      - net
-    environment:
-      TZ: 'Europe/Moscow'
-    deploy:
-      resources:
-        limits:
-          cpus: '0.30'
-          memory: 100M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "200k"
-        max-file: "10"
-  refresh_invoker:
-    networks:
-      - net
-    deploy:
-      resources:
-        limits:
-          cpus: '0.10'
-          memory: 30M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "200k"
-        max-file: "10"
-  proxy:
-    networks:
-      - net
-    deploy:
-      resources:
-        limits:
-          cpus: '0.30'
-          memory: 100M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "200k"
-        max-file: "10"
+volumes:
+  mongodb_volume:
 
 networks:
   net:
     driver: overlay
+
+services:
+  api:
+    deploy:
+      resources:
+        limits:
+          cpus: 0.3
+          memory: 100M
+    environment:
+      TZ: Europe/Moscow
+    logging:
+      driver: json-file
+      options:
+        max-file: '10'
+        max-size: 200k
+    networks:
+      - net
+    ports:
+    - published: 5000
+      target: 5000
+  mongodb:
+    container_name: mongodb
+    hostname: mongodb
+    image: mongo:latest
+    ports:
+    - published: 27017
+      target: 27017
+    volumes:
+    - mongodb_volume:/data/db:rw
+  proxy:
+    deploy:
+      resources:
+        limits:
+          cpus: 0.3
+          memory: 100M
+    logging:
+      options:
+        max-file: '10'
+        max-size: 200k
+    networks:
+      - net
+    ports:
+    - published: 5001
+      target: 5001
+  refresh_invoker:
+    deploy:
+      resources:
+        limits:
+          cpus: 0.1
+          memory: 30M
+    logging:
+      driver: json-file
+      options:
+        max-file: '10'
+        max-size: 200k
+    networks:
+      - net
