@@ -13,14 +13,16 @@ stages:
   - job: dockerBuild
     strategy:
       matrix:
+        mongodb:
+          imageName: mongo:latest
         api:
-          imageName: rtuitlab/schedule-rtu-api
+          imageName: mireaninja/schedule_api
           buildContext: './'
         refresh_invoker:
-          imageName: rtuitlab/schedule-rtu-refresh-invoker
+          imageName: mireaninja/refresh_invoker
           buildContext: './refresh_invoker'
         proxy:
-          imageName: rtuitlab/schedule-rtu-proxy
+          imageName: mireaninja/schedule_proxy
           buildContext: './proxy'
     steps:
     - task: Docker@2
@@ -35,6 +37,21 @@ stages:
           latest
 - stage: UpdateServices
   jobs:
+  - deployment: DeployMongo
+    pool:
+      vmImage: 'ubuntu-latest'
+    environment: production
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - download: none
+            - task: SSH@0
+              inputs:
+                sshEndpoint: 'swarm manager'
+                runOptions: 'commands'
+                commands: 'docker service update --image mongo:$(Build.BuildId) mongodb'
+                readyTimeout: '20000'
   - deployment: DeployApi
     pool:
       vmImage: 'ubuntu-latest'
@@ -48,7 +65,7 @@ stages:
               inputs:
                 sshEndpoint: 'swarm manager'
                 runOptions: 'commands'
-                commands: 'docker service update --image rtuitlab/schedule-rtu-api:$(Build.BuildId) schedule-rtu_api'
+                commands: 'docker service update --image mireaninja/schedule_api:$(Build.BuildId) schedule-rtu_api'
                 readyTimeout: '20000'
   - deployment: DeployRefreshInvoker
     pool:
@@ -63,7 +80,7 @@ stages:
               inputs:
                 sshEndpoint: 'swarm manager'
                 runOptions: 'commands'
-                commands: 'docker service update --image rtuitlab/schedule-rtu-refresh-invoker:$(Build.BuildId) schedule-rtu_refresh_invoker'
+                commands: 'docker service update --image mireaninja/refresh_invoker:$(Build.BuildId) schedule-rtu_refresh_invoker'
                 readyTimeout: '20000'
   - deployment: DeployProxy
     pool:
@@ -78,5 +95,5 @@ stages:
               inputs:
                 sshEndpoint: 'swarm manager'
                 runOptions: 'commands'
-                commands: 'docker service update --image rtuitlab/schedule-rtu-proxy:$(Build.BuildId) schedule-rtu_proxy'
+                commands: 'docker service update --image mireaninja/schedule_proxy:$(Build.BuildId) schedule-rtu_proxy'
                 readyTimeout: '20000'
