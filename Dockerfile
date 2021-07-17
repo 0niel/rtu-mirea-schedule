@@ -1,4 +1,4 @@
-FROM tiangolo/meinheld-gunicorn-flask:python3.7
+FROM tiangolo/meinheld-gunicorn-flask:python3.8
 
 WORKDIR /app
 RUN pip install --upgrade pip
@@ -9,5 +9,4 @@ COPY . /app
 
 EXPOSE 5000
 
-ENTRYPOINT ["python"]
-CMD ["waitress_run.py"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5000"]
