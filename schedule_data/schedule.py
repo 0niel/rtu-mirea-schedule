@@ -18,14 +18,14 @@ class Schedule:
     }
 
     @staticmethod
-    async def save(group, schedule):
+    def save(group, schedule):
         """Сохранение или обновление расписания группы.
 
         Args:
             group (str): название группы
             schedule (dict): словарь расписания для каждого дня недели
         """
-        await semester_collection.update_one(
+        semester_collection.update_one(
             {'group': group},
             {'$set': {'group': group,
                       'schedule':  schedule}},
