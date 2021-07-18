@@ -1,6 +1,6 @@
 from app.models import GroupsListModel, ScheduleModel
 from schedule_parser import start_parsing
-from app import app
+from run import app
 from schedule_data.schedule import Schedule
 from fastapi import FastAPI, Body, HTTPException, status
 from fastapi.responses import JSONResponse
