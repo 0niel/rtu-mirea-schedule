@@ -46,7 +46,7 @@ class Downloader:
         self._url = 'https://www.mirea.ru/schedule/'
         self._path_to_error_log = path_to_error_log
         self._base_file_dir = base_file_dir
-        self._file_types = ['xls', 'xlsx']
+        self._file_types = ['xls', 'xlsx', 'pdf']
         self._except_types = except_types
         self._download_dir = {
             "zach": [r'zach', r'zachety'],
