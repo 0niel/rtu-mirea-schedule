@@ -136,6 +136,18 @@ class Parser:
             return True
         return False
 
+    def _GetIndexListLessonsBetweenTime(self, start_time:str, end_time:str):
+        """Получаем пары в промежутке времени
+
+            return [(index, time)] #Example [(1,"10:40")]
+        """
+        list_indexs = []
+        list_times = list(self.time_dict)
+        for i in range(len(list_times)):
+            if datetime.strptime(start_time, "%H:%M") <= datetime.strptime(list_times[i], "%H:%M") and datetime.strptime(list_times[i], "%H:%M") < datetime.strptime(end_time, "%H:%M") - timedelta(minutes = 10):
+                list_indexs.append((i+1, list_times[i]))
+        return list_indexs
+
     def _get_lesson_with_weeks(self, lesson: str, is_even_number: bool):
         """
         Метод возвращает список словарей, состоящих из названия 
