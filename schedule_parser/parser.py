@@ -8,9 +8,11 @@
 import re
 from schedule_data.schedule import Schedule
 import os.path
-import datetime
 import xlrd
 from schedule_parser import setup_logger
+import pdfplumber
+from datetime import datetime, timedelta, date
+import copy
 
 
 class Parser:
@@ -136,7 +138,7 @@ class Parser:
             return True
         return False
 
-    def _GetIndexListLessonsBetweenTime(self, start_time:str, end_time:str):
+    def _GetIndexListLessonsBetweenTime(self, start_time: str, end_time: str):
         """Получаем пары в промежутке времени
 
             return [(index, time)] #Example [(1,"10:40")]
@@ -144,7 +146,7 @@ class Parser:
         list_indexs = []
         list_times = list(self.time_dict)
         for i in range(len(list_times)):
-            if datetime.strptime(start_time, "%H:%M") <= datetime.strptime(list_times[i], "%H:%M") and datetime.strptime(list_times[i], "%H:%M") < datetime.strptime(end_time, "%H:%M") - timedelta(minutes = 10):
+            if datetime.strptime(start_time, "%H:%M") <= datetime.strptime(list_times[i], "%H:%M") and datetime.strptime(list_times[i], "%H:%M") < datetime.strptime(end_time, "%H:%M") - timedelta(minutes=10):
                 list_indexs.append((i+1, list_times[i]))
         return list_indexs
 
@@ -444,12 +446,13 @@ class ExcelParser(Parser):
         group = sheet.cell(
             group_name_row_num, discipline_col_num).value
         group_name = re.search(r'[А-Яа-я]{4}-[0-9]{2}-[0-9]{2}', group)
-        
+
         if group_name is None:
-            raise ValueError("Group name is none. Cell value: {}", format(group))
-        
+            raise ValueError(
+                "Group name is none. Cell value: {}", format(group))
+
         group_name = group_name.group(0)
-        
+
         # Инициализация словаря
         one_group = {}
 
@@ -708,14 +711,14 @@ class ExcelParser(Parser):
                     if None in date_item:
                         is_fuck = True
                     elif is_fuck is True:
-                        this_date = datetime.date(
-                            datetime.datetime.now().year, date_item[1], date_item[0])
+                        this_date = date(
+                            datetime.now().year, date_item[1], date_item[0])
                         this_index = date_range.index(date_item)
                         break
 
                 for range_index in range(this_index, 0, -1):
                     if date_range_list[range_index - 1][0] != date_range_list[range_index][0]:
-                        this_date = this_date - datetime.timedelta(1)
+                        this_date = this_date - timedelta(1)
                     date_range_list[range_index - 1][0] = this_date.day
                     date_range_list[range_index - 1][1] = this_date.month
 
@@ -759,8 +762,8 @@ class ExcelParser(Parser):
 
             date_range_dict = {}
             for date_item in date_range:
-                this_row_date = datetime.date(
-                    datetime.datetime.now().year, date_item[1], date_item[0])
+                this_row_date = date(
+                    datetime.now().year, date_item[1], date_item[0])
                 if this_row_date.strftime("%d.%m") not in date_range_dict:
                     date_range_dict[this_row_date.strftime("%d.%m")] = []
 
@@ -808,6 +811,7 @@ class ExcelParser(Parser):
                             group_name_row_num, column_range
                         )
 
+                        
                         Schedule.save(
                             one_time_table['group'], one_time_table['schedule'])
 
@@ -824,3 +828,146 @@ class ExcelParser(Parser):
         book.release_resources()
         del book
         return group_list
+
+
+class PDFParse(Parser):
+    """Класс, реализующий методы для парсинга расписания из
+    Excel документов
+    """
+
+    def __init__(self, path_to_pdf_file) -> None:
+        self.__pdf_path = path_to_pdf_file
+        self.max_weeks = 17
+
+    def parse(self):
+        """ Парсим pdf файл"""
+
+        def parseTable(table):
+            """Парсим таблицу"""
+            days = {}
+
+            for i in range(1, 7):
+                lessons = {}
+                lessons['lessons'] = [[], [], [], [], [], [], [], []]
+                days[str(i)] = lessons
+
+            for rows in table:
+                """
+                Парсит по строчно таблицу пдф
+
+                
+                one_lesson = {
+                        'weeks: [1,2,3], #Example
+                        'time': 15:40, #It is example
+                        'type': 'пр'
+                        'room': 'Д', #Example
+                        'teacher': 'Лад в. п.' #Если больше одного препода то List
+                }
+
+                days = {
+                    1:{
+                        'lessons': [one_lesson, [], [], [], [], []], #example
+                    },
+                    2...6
+                }
+
+                group_dict = {
+                    "Название группы": "{days}"
+                }
+                """
+
+                #Получаем именна групп из таблицы
+                groups = [group_name for group_name in rows[0]
+                          if group_name != "Группа" and group_name != '']
+
+                group_dict = {}
+
+                #Удаление звёздочки у названия группы. Создание группы словаря
+                for i in range(len(groups)):
+                    if groups[i][-1] == "*":
+                        groups[i] = groups[i][:-1]
+                    #Копируем заготовку
+                    group_dict[groups[i]] = copy.deepcopy(days)
+
+                #Для работы, когда предметов на дни недели больше одного
+                last_day_index = int
+                #Работаем по строкам таблицы. Начинаем со 2.
+                for i in range(2, len(rows)):
+                    day_index = last_day_index
+                    #Если В этот день ещё что-то есть у группы) Не работает!
+                    try:
+                        if rows[i][0] is not None:
+                            day_index = Parser.get_day_num(rows[i][0])
+                            last_day_index = day_index
+                    except:
+                        pass
+
+                    #Работаем по строке. Ищем информацию
+                    for j in range(1, len(rows[i])):
+                        
+                        #Если нашли интеересную для нас информацию
+                        if rows[i][j] != '' and rows[i][j] != None:
+
+                            one_lesson = dict
+                            one_lesson = {}
+                            #номер пары
+                            time_start = re.findall(
+                                '\d+:\d+', rows[i][j])[0]
+
+                            #Конец пары
+                            time_end = re.findall('\d+:\d+', rows[i][j])[1]
+
+                            #Разделяем информацию для работы
+                            info = re.split(
+                                r'\n\d+:\d+', rows[i][j], maxsplit=1)
+
+                            #Поиск кабинетов в строке
+                            classes = re.findall(
+                                r'\b\w{3}\. \S+', info[1])[0][5:]
+
+                            #Поиск преподавателей в строке
+                            teachers = re.findall(r'\w+ \w\.\w+', info[1])
+
+                            #ФОрматируем в нужный формат.
+                            lesson = self._format_lesson_name(
+                                re.split(r'\n\d+:\d+', rows[i][j], maxsplit=2)[0])
+
+                            #Убираем перенос строки
+                            one_lesson['name'] = re.sub(
+                                "^\s+|\n|\r|\s+$", '',  lesson[0]['name'])
+
+                            #Берём из include
+                            one_lesson['weeks'] = lesson[0]['include']
+
+                            #Поумолчанию ставим практику
+                            one_lesson['type'] = 'пр'
+
+                            #Если переподавателей больше одного возвращаем список, иначе строку
+                            one_lesson['teacher'] = teachers if len(
+                                teachers) > 1 else teachers[0]
+                            one_lesson['room'] = classes
+
+                            #Получаем кортечь. (index, time)
+                            list_tuples_Indexs_lesson = self._GetIndexListLessonsBetweenTime(
+                                time_start, time_end)
+
+                            for tuple_index in list_tuples_Indexs_lesson:
+
+                                #Получаем время из tuple
+                                one_lesson['time'] = tuple_index[1]
+                                group_dict[groups[j-1]][str(day_index)]['lessons'][tuple_index[0]-1] = [one_lesson]
+
+                            #Добавить логирование
+                for group_name in list(group_dict):
+                    Schedule.save(
+                            group_name, group_dict[group_name])
+
+        #Работа при открытом файле
+        with pdfplumber.open(self.__pdf_path) as pdf:
+            pages = pdf.pages
+            for page in pages:
+                try:
+                    parseTable(page.extract_tables(
+                        table_settings={"vertical_strategy": "lines"}))
+                except:
+                    pass

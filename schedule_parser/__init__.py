@@ -38,7 +38,7 @@ def start_parsing():
     интерфейса класса Parse
     """
     # во избежание рекурсивного включения
-    from .parser import ExcelParser
+    from .parser import ExcelParser, PDFParse
     from .downloader import Downloader
 
     downloader = Downloader(
@@ -56,7 +56,11 @@ def start_parsing():
             path_to_xlsx_file = os.path.join(path, file_name)
             if("ИКиб_маг_2к" in path_to_xlsx_file):
                 continue
-
-            excel_parser = ExcelParser(path_to_xlsx_file,
-                                       path_to_error_log='parser.log')
-            excel_parser.parse()
+             
+            if '.pdf' != os.path.splitext(file_name)[1]:
+                excel_parser = ExcelParser(path_to_xlsx_file,
+                                        path_to_error_log='parser.log')
+                excel_parser.parse()
+            else:
+                pdf_parser = PDFParse(path_to_xlsx_file)
+                pdf_parser.parse()
