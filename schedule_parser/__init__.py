@@ -1,7 +1,7 @@
 import logging
 import sys
 import os.path
-
+import time
 
 def setup_logger(path_to_error_log, logger_name):
     """Инициализация объекта для логирования информации
@@ -38,29 +38,32 @@ def start_parsing():
     интерфейса класса Parse
     """
     # во избежание рекурсивного включения
-    from .parser import ExcelParser, PDFParse
+    # from .parser import ExcelParser, PDFParse
+    from .excel_parser import ExcelParser
     from .downloader import Downloader
+    from schedule_parser.excel_formatter import ExcelFormatter
+    import pandas as pd
 
     downloader = Downloader(
-        path_to_error_log='downloader.log', base_file_dir='xls/')
+        path_to_error_log='downloader.log', base_file_dir='documents/')
     downloader.run()
+    
     # директория, в которой хранятся excel документы
-    xlsx_dir = 'xls/'
+    xlsx_dir = 'documents/semester'
+
     for path, _, files in os.walk(xlsx_dir):
         for file_name in files:
-            # todo: вынести проверку актуальности документа
-            # в отдельный метод
-            if "зима" in file_name or "лето" in file_name:
+            path_to_file = os.path.join(path, file_name)
+            file_extension = os.path.splitext(path_to_file)[1]
+            
+            if("ИКиб_маг_2к" in path_to_file):
                 continue
 
-            path_to_xlsx_file = os.path.join(path, file_name)
-            if("ИКиб_маг_2к" in path_to_xlsx_file):
-                continue
-             
-            if '.pdf' != os.path.splitext(file_name)[1]:
-                excel_parser = ExcelParser(path_to_xlsx_file,
-                                        path_to_error_log='parser.log')
-                excel_parser.parse()
+            if file_extension == '.pdf':
+                pass
+                # pdf_parser = PDFParser(path_to_file, 
+                #                        path_to_error_log='pdf_parser.log')
+                # pdf_parser.parse()
             else:
-                pdf_parser = PDFParse(path_to_xlsx_file)
-                pdf_parser.parse()
+                ExcelParser(path_to_file, ExcelFormatter(),
+                                           path_to_error_log='excel_parser.log')

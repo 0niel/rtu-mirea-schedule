@@ -70,7 +70,7 @@ class Downloader:
         """
         # проверка на актуальность файла, чтобы скачать именно нужный
         # todo: вынести в отдельный метод
-        if "зима" in path or "лето" in path or "зач" in path or "экз" in path:
+        if "зима" in path or "лето" in path:
             return False
 
         if os.path.isfile(path):
@@ -112,6 +112,45 @@ class Downloader:
                 if re.search(pattern, file_name, flags=re.IGNORECASE):
                     return dir_name
 
+    def __parse_links_by_title(self, block_title: str, parse):
+        """Получить список всех ссылок на документы из блоков 
+        расписания по заголовку. Например, если title == 'Расписание занятий:', 
+        то вернёт список всех ссылок на все документы с расписанием на семестр, 
+        проигнорируя расписание для сессии и др.
+
+        Args:
+            block_title (str): заголовок в блоке на сайте (https://www.mirea.ru/schedule/)
+            parse (BeautifulSoup): объект BS для парсинга
+        """
+        documents_links = []
+        
+        # мы ищем все заголовки в блоках с расписанием, это может быть 
+        # заголовок об экзаминационной сесии или т.п.
+        schedule_titles = parse.find_all('b', class_='uk-h3')
+        for title in schedule_titles:
+            if title.text == block_title:
+                # если это расписание занятий, то от носительно него 
+                # получаем главный блок, в котором находятся ссылки на 
+                # документы с расписанием
+                all_divs = title.parent.parent.find_all('div', recursive=False)
+                for i, div in enumerate(all_divs):
+                    if block_title in div.text:
+                        # проходимся по всем div'ам начиная от блока с расписанием, 
+                        # заканчивая другим блоком с расписанием. Это нужно, т.к. 
+                        # эти блоки не имеют вложенности и довольно сложно определить 
+                        # где начинаются и кончаются документы с расписанием для семестра.
+                        for j in range(i + 1, len(all_divs)):
+                            # 'uk-h3' - класс заголовка расписания
+                            if 'uk-h3' not in str(all_divs[j]) and all_divs[j].text != block_title:
+                                 # поиск в HTML Всех классов с разметой Html
+                                document = all_divs[j].find('a', {"class": "uk-link-toggle"})
+                                if document is not None:
+                                    if document['href'] not in documents_links:
+                                        documents_links.append(document['href'])
+                            else:
+                                break
+        return documents_links
+    
     def download_file(self, url: str, file_path='', attempts=2):
         """Загружает содержимое URL-адреса в файл 
         (с поддержкой больших файлов путем потоковой передачи)
@@ -165,20 +204,20 @@ class Downloader:
             )
         )
         # Чтение страницы в переменную
-        site = str(response.read().decode())
+        html = str(response.read().decode())
         response.close()
 
         # Объект BS с параметром парсера
-        parse = BeautifulSoup(site, "html.parser")
-        # поиск в HTML Всех классов с разметой Html
-        xls_list = parse.findAll('a', {"class": "uk-link-toggle"})
+        parse = BeautifulSoup(html, "html.parser")
 
-        # Списки адресов на файлы
-        # Сохранение списка адресов сайтов
-        url_files = [x['href'].replace('https', 'http') for x in xls_list]
+        # списки адресов на файлы
+        url_files = self.__parse_links_by_title('Расписание занятий:', parse)
+        print(url_files)
+        # TODO: скачивание сессионных файлов
 
         # количество файлов на скачивание (всего)
         progress_all = len(url_files)
+        
         # количество скачанных файлов
         count_file = 0
 
@@ -188,10 +227,6 @@ class Downloader:
             divided_path = os.path.split(url_file)
             file_name = divided_path[1]
             try:
-                # todo: вынести в отдельный метод
-                # (проверка актуальности расписания под текущий сезон)
-                if "зима" in file_name or "лето" in file_name:
-                    continue
                 # название файла и его расширение
                 (file_root, file_ext) = os.path.splitext(file_name)
                 if file_ext.replace('.', '') in self._file_types and "заоч" not in file_root:

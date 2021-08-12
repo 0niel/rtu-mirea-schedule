@@ -8,5 +8,6 @@ motor==2.4.0
 uvicorn==0.14.0
 fastapi==0.66.0
 pydantic==1.8.2
+motor==2.4.0
 config
-pdfplumber
+pdfplumber==0.5.28
