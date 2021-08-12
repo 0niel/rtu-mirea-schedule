@@ -293,3 +293,10 @@ class ExcelFormatterGetLessonsTests(unittest.TestCase):
                           {'name': 'Тепл. проц. в ТС 2 груп', 'type': None}]
         self.assertEqual(result, correct_result)
         
+    def test_get_lessons_41(self):
+        result = self.formatter.get_lessons(
+            '1гр.=3,7,11,15; 2гр.=1,5,9,13н.Создание автоматизированных систем в защищенном исполнении')
+        correct_result = [{'name': 'Создание автоматизированных систем в защищенном исполнении 1 груп', 'type': None},
+                          {'name': 'Создание автоматизированных систем в защищенном исполнении 2 груп', 'type': None}]
+        self.assertEqual(result, correct_result)
+        
