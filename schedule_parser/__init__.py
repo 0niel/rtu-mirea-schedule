@@ -64,6 +64,6 @@ def start_parsing():
                 #                        path_to_error_log='pdf_parser.log')
                 # pdf_parser.parse()
             else:
-                excel_parser = ExcelParser(path_to_file, ExcelFormatter(),
+                excel_parser = ExcelParser(path_to_file, 'semester', ExcelFormatter(),
                                            path_to_error_log='excel_parser.log')
                 excel_parser.parse()
