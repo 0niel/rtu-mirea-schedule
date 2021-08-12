@@ -62,26 +62,44 @@ class ExcelFormatter(Formatter):
             if len(found_items) > 0:
                 for week_types in found_items:
                     lesson = lesson.replace(week_types.group(), '')
-                lesson.strip()
+
+                # удаление ненужных символов
+                remove_trash = r'(\A\W+\s*)|([-,_\+;]+$)'
+                lesson = re.sub(remove_trash, "", lesson)
+                lesson = lesson.strip()
+                list_lessons = lesson.split(';')
                 
-                for week_types in found_items:
-                    group_substr = ' груп.' if regexp == regexp_2 or regexp == regexp_3 else ''
-                    
-                    # удаление ненужных символов
-                    remove_trash = r'(\A\W+\s*)|([-,_\+;]+$)'
-                    group_1 = re.sub(remove_trash, "", week_types.group(1))
-                    group_1 = group_1.strip()
-                    
-                    group_2 = re.sub(remove_trash, "", week_types.group(2))
-                    group_2 = group_2.strip()
-                    
-                    lesson = re.sub(remove_trash, "", lesson)
-                    lesson = lesson.strip()
-                    
-                    if regexp == regexp_2:
-                        result.append(group_2 + ' ' + lesson + ' ' + group_1 + group_substr)
-                    else:
-                        result.append(group_1 + ' ' + lesson + ' ' + group_2 + group_substr)
+                group_substr = ' груп.' if regexp == regexp_2 or regexp == regexp_3 else ''
+                
+                if len(list_lessons) == 2 and len(found_items) == 4:
+                    for i in range(len(found_items)):
+                        index = int(i >= 2)
+    
+                        group_1 = re.sub(remove_trash, "", found_items[i].group(1))
+                        group_1 = group_1.strip()
+                        
+                        group_2 = re.sub(remove_trash, "", found_items[i].group(2))
+                        group_2 = group_2.strip()
+                        
+                        
+                        if regexp == regexp_2:
+                            result.append(group_2 + ' ' + list_lessons[index] + ' ' + group_1 + group_substr)
+                        else:
+                            result.append(group_1 + ' ' + list_lessons[index] + ' ' + group_2 + group_substr)
+                        
+                        
+                else:
+                    for week_types in found_items:
+                        group_1 = re.sub(remove_trash, "", week_types.group(1))
+                        group_1 = group_1.strip()
+                        
+                        group_2 = re.sub(remove_trash, "", week_types.group(2))
+                        group_2 = group_2.strip()
+                        
+                        if regexp == regexp_2:
+                            result.append(group_2 + ' ' + lesson + ' ' + group_1 + group_substr)
+                        else:
+                            result.append(group_1 + ' ' + lesson + ' ' + group_2 + group_substr)
         
         return result   
 
