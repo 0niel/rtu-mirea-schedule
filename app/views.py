@@ -17,7 +17,8 @@ async def refresh():
 
 @app.get('/api/schedule/{group}/full_schedule', response_description="Return full schedule of one group", response_model=ScheduleModel)
 async def full_schedule(group: str):
-    full_schedule = await Schedule.get_full_schedule(group)
+    schedule_db = Schedule()
+    full_schedule = await schedule_db.get_full_schedule(group)
     if full_schedule:
         return JSONResponse(full_schedule)
 
@@ -27,7 +28,8 @@ async def full_schedule(group: str):
 
 @app.get('/api/schedule/groups', response_description="List of all groups", response_model=GroupsListModel)
 async def groups_list():
-    groups_list = await Schedule.get_groups_list()
+    schedule_db = Schedule()
+    groups_list = await schedule_db.get_groups_list()
     if groups_list:
         return JSONResponse({'groups': groups_list, 'count': len(groups_list)})
 
