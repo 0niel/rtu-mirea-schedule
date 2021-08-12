@@ -12,10 +12,10 @@ class ExcelParser(Parser):
     Excel документов
     """
 
-    def __init__(self, document_path: str, formatter: Formatter,
+    def __init__(self, document_path: str, doc_type: str, formatter: Formatter,
                  path_to_error_log='errors/parser.log'):
         self.__xlsx_path = document_path
-        self.__doc_type = self.__get_doc_type_code(document_path)
+        self.__doc_type = self.doc_type_list[doc_type]
         self.__formatter = formatter
         self.__csv_data = []
 
@@ -170,11 +170,6 @@ class ExcelParser(Parser):
         """Получение расписания одной группы для формы экзаменационной сессии"""
         # TODO: IMPL
         pass
-
-    def __get_doc_type_code(self, path_to_file):
-        doc_type_str = os.path.dirname(
-            os.path.relpath(path_to_file, start='xls')).split('\\')[-1]
-        return self.doc_type_list[doc_type_str]
 
     def parse(self):
         """Чтение excel документа и парсинг данных из него в базу MongoDB
