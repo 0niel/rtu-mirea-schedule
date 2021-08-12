@@ -13,9 +13,9 @@ class LessonModel(BaseModel):
     weeks: List[int]
     time_start: str
     time_end: str
-    type: str
-    teacher: str
-    room: str
+    types: str
+    teachers: str
+    rooms: str
 
 
 class ScheduleValueModel(BaseModel):
