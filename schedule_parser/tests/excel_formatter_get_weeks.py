@@ -193,3 +193,9 @@ class ExcelFormatterGetWeeksTests(unittest.TestCase):
             '2-8 н Теория соединения материалов\n10,14н-1гр 12,16н-2 гр Тепл. проц. в ТС')
         correct_result = [[2, 3, 4, 5, 6, 7, 8], [10, 14], [12, 16]]
         self.assertEqual(result, correct_result)
+        
+    def test_get_weeks_30(self):
+        result = self.formatter.get_weeks(
+            '1гр.=3,7,11,15; 2гр.=1,5,9,13н.Создание автоматизированных систем в защищенном исполнении')
+        correct_result = [[3, 7, 11, 15], [1, 5, 9, 13]]
+        self.assertEqual(result, correct_result)

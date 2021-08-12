@@ -293,3 +293,19 @@ class ExcelFormatterGetLessonsTests(unittest.TestCase):
                           {'name': 'Тепл. проц. в ТС 2 груп', 'type': None}]
         self.assertEqual(result, correct_result)
         
+    def test_get_lessons_41(self):
+        result = self.formatter.get_lessons(
+            '1гр.=3,7,11,15; 2гр.=1,5,9,13н.Создание автоматизированных систем в защищенном исполнении')
+        correct_result = [{'name': 'Создание автоматизированных систем в защищенном исполнении 1 груп', 'type': None},
+                          {'name': 'Создание автоматизированных систем в защищенном исполнении 2 груп', 'type': None}]
+        self.assertEqual(result, correct_result)
+        
+    def test_get_lessons_42(self):
+        result = self.formatter.get_lessons(
+            '1гр.=4,8,12н.; 2гр.=6,10,14н. Разработка и эксплуатация защищенных автоматизированных систем; 1гр.=2,6,10,14н.; 2гр=4,8,12,16н.=Инфраструктура открытых ключей в СЗИ')
+        correct_result = [{'name': 'Разработка и эксплуатация защищенных автоматизированных систем 1 груп', 'type': None},
+                          {'name': 'Разработка и эксплуатация защищенных автоматизированных систем 2 груп', 'type': None},
+                          {'name': 'Инфраструктура открытых ключей в СЗИ 1 груп', 'type': None},
+                          {'name': 'Инфраструктура открытых ключей в СЗИ 2 груп', 'type': None}]
+        self.assertEqual(result, correct_result)
+        

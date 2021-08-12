@@ -50,7 +50,6 @@ def start_parsing():
     
     # директория, в которой хранятся excel документы
     xlsx_dir = 'documents/semester'
-
     for path, _, files in os.walk(xlsx_dir):
         for file_name in files:
             path_to_file = os.path.join(path, file_name)
@@ -65,5 +64,6 @@ def start_parsing():
                 #                        path_to_error_log='pdf_parser.log')
                 # pdf_parser.parse()
             else:
-                ExcelParser(path_to_file, ExcelFormatter(),
+                excel_parser = ExcelParser(path_to_file, ExcelFormatter(),
                                            path_to_error_log='excel_parser.log')
+                excel_parser.parse()
