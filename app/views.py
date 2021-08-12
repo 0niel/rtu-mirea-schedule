@@ -20,13 +20,16 @@ async def full_schedule(group: str):
     full_schedule = await Schedule.get_full_schedule(group)
     if full_schedule:
         return JSONResponse(full_schedule)
-    
-    raise HTTPException(headers={'Retry-After': 200}, status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
-  
+
+    raise HTTPException(headers={'Retry-After': 200},
+                        status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
 @app.get('/api/schedule/groups', response_description="List of all groups", response_model=GroupsListModel)
 async def groups_list():
     groups_list = await Schedule.get_groups_list()
     if groups_list:
         return JSONResponse({'groups': groups_list, 'count': len(groups_list)})
-    
-    raise HTTPException(headers={'Retry-After': 200}, status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+    raise HTTPException(headers={'Retry-After': 200},
+                        status_code=status.HTTP_503_SERVICE_UNAVAILABLE)

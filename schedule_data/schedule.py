@@ -17,23 +17,21 @@ class Schedule:
         7: {"start": '19:40', "end": '21:10'},
     }
 
-    @staticmethod
-    async def save(group, schedule):
+    def save(self, group, schedule):
         """Сохранение или обновление расписания группы.
 
         Args:
             group (str): название группы
             schedule (dict): словарь расписания для каждого дня недели
         """
-        await semester_collection.update_one(
+        semester_collection.update_one(
             {'group': group},
             {'$set': {'group': group,
                       'schedule':  schedule}},
             upsert=True
         )
 
-    @staticmethod
-    def get_current_week(today):
+    def get_current_week(self, today):
         if today.month < 8:
             first = date(today.year, 2, 9)
         else:
@@ -46,14 +44,12 @@ class Schedule:
             week += 1
         return week
 
-    @staticmethod
-    async def get_full_schedule(group_name):
+    async def get_full_schedule(self, group_name):
         schedule = await semester_collection.find_one(
             {'group': group_name}, {'_id': 0})
         return schedule
 
-    @staticmethod
-    async def get_groups_list():
+    async def get_groups_list(self):
         cursor = semester_collection.find({}, {'group': 1, '_id': 0})
         groups = await cursor.to_list(None)
         return [group['group'] for group in groups]

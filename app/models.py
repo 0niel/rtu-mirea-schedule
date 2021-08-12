@@ -11,7 +11,8 @@ class GroupsListModel(BaseModel):
 class LessonModel(BaseModel):
     name: str
     weeks: List[int]
-    time: str
+    time_start: str
+    time_end: str
     type: str
     teacher: str
     room: str

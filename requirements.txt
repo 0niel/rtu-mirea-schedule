@@ -1,11 +1,13 @@
 requests
 beautifulsoup4==4.9.3
-openpyxl==3.0.5
+openpyxl==3.0.7
 urllib3==1.26.6
-xlrd==2.0.1
+xlrd==1.2.0
 pymongo==3.11.4
 motor==2.4.0
 uvicorn==0.14.0
 fastapi==0.66.0
 pydantic==1.8.2
+motor==2.4.0
 config
+pdfplumber==0.5.28
