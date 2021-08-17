@@ -12,6 +12,7 @@ import time
 from urllib import request
 from bs4 import BeautifulSoup
 from schedule_parser import setup_logger
+from selenium import webdriver
 
 
 class Downloader:
@@ -197,65 +198,71 @@ class Downloader:
             URL, типы файлов для проверки, директории, строго заданы 
             в качестве защищённых полей класса
         """
-        # Запрос страницы
-        response = request.urlopen(
-            self._url, context=ssl.create_default_context(
-                cafile=certifi.where()
-            )
-        )
-        # Чтение страницы в переменную
-        html = str(response.read().decode())
-        response.close()
-
-        # Объект BS с параметром парсера
-        parse = BeautifulSoup(html, "html.parser")
-
-        # списки адресов на файлы
-        url_files = self.__parse_links_by_title('Расписание занятий:', parse)
-        print(url_files)
-        # TODO: скачивание сессионных файлов
-
-        # количество файлов на скачивание (всего)
-        progress_all = len(url_files)
         
-        # количество скачанных файлов
-        count_file = 0
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--window-size=1420,1080')
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--disable-gpu')
+        driver = webdriver.Chrome(chrome_options=chrome_options)
+        page_sources = []
+        driver.get(self._url)
+        page_sources.append(driver.find_element_by_css_selector('#tab-content > li.uk-active').get_attribute('innerHTML'))
+        driver.find_element_by_css_selector('#tabs > ul.uk-tab > li:nth-child(2) > a').click()
+        page_sources.append(driver.find_element_by_css_selector('#tab-content > li.uk-active').get_attribute('innerHTML'))
 
-        # Сохранение файлов
-        for url_file in url_files:
-            # получаем название файла из URL
-            divided_path = os.path.split(url_file)
-            file_name = divided_path[1]
-            try:
-                # название файла и его расширение
-                (file_root, file_ext) = os.path.splitext(file_name)
-                if file_ext.replace('.', '') in self._file_types and "заоч" not in file_root:
-                    subdir = self.__get_dir(file_name)
-                    path_to_file = os.path.join(
-                        self._base_file_dir, subdir, file_name)
-                    if subdir not in self._except_types:
-                        os.makedirs(os.path.join(
-                            self._base_file_dir, subdir), exist_ok=True)
-                        result = self.__download_schedule(
-                            url_file, path_to_file)
+        driver.quit()
+        
+        for html in page_sources:
+            # Объект BS с параметром парсера
+            parse = BeautifulSoup(html, "html.parser")
 
-                        count_file += 1
-                        progress_percentage = count_file / progress_all * 100
+            # списки адресов на файлы
+            url_files = self.__parse_links_by_title('Расписание занятий:', parse)
+            print(url_files)
+            # TODO: скачивание сессионных файлов
 
-                        if result:
-                            self._logger.info(
-                                'Download : {0} -- {1}'.format(
-                                    path_to_file,
-                                    progress_percentage))
+            # количество файлов на скачивание (всего)
+            progress_all = len(url_files)
+            
+            # количество скачанных файлов
+            count_file = 0
+
+            # Сохранение файлов
+            for url_file in url_files:
+                # получаем название файла из URL
+                divided_path = os.path.split(url_file)
+                file_name = divided_path[1]
+                try:
+                    # название файла и его расширение
+                    (file_root, file_ext) = os.path.splitext(file_name)
+                    if file_ext.replace('.', '') in self._file_types and "заоч" not in file_root:
+                        subdir = self.__get_dir(file_name)
+                        path_to_file = os.path.join(
+                            self._base_file_dir, subdir, file_name)
+                        if subdir not in self._except_types:
+                            os.makedirs(os.path.join(
+                                self._base_file_dir, subdir), exist_ok=True)
+                            result = self.__download_schedule(
+                                url_file, path_to_file)
+
+                            count_file += 1
+                            progress_percentage = count_file / progress_all * 100
+
+                            if result:
+                                self._logger.info(
+                                    'Download : {0} -- {1}'.format(
+                                        path_to_file,
+                                        progress_percentage))
+                            else:
+                                self._logger.info(
+                                    'Skp : {0} -- {1}'.format(
+                                        path_to_file,
+                                        progress_percentage))
                         else:
-                            self._logger.info(
-                                'Skp : {0} -- {1}'.format(
-                                    path_to_file,
-                                    progress_percentage))
+                            continue
                     else:
-                        continue
-                else:
-                    count_file += 1
+                        count_file += 1
 
-            except Exception as ex:
-                self._logger.error(f'[{url_file}] message:' + str(ex))
+                except Exception as ex:
+                    self._logger.error(f'[{url_file}] message:' + str(ex))
