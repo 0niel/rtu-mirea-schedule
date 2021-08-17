@@ -309,3 +309,15 @@ class ExcelFormatterGetLessonsTests(unittest.TestCase):
                           {'name': 'Инфраструктура открытых ключей в СЗИ 2 груп', 'type': None}]
         self.assertEqual(result, correct_result)
         
+    def test_get_lessons_43(self):
+        result = self.formatter.get_lessons(
+            'кр. 5 н. Разработка конфигураций в среде "1С: Предприятие" ')
+        correct_result = [{'name': 'Разработка конфигураций в среде "1С: Предприятие"', 'type': None}]
+        self.assertEqual(result, correct_result)
+        
+    def test_get_lessons_44(self):
+        result = self.formatter.get_lessons(
+            '10 н. Разработка конфигураций в среде "1С: Предприятие"  ')
+        correct_result = [{'name': 'Разработка конфигураций в среде "1С: Предприятие"', 'type': None}]
+        self.assertEqual(result, correct_result)
+        

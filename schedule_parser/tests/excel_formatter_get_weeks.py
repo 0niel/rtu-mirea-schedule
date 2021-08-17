@@ -199,3 +199,15 @@ class ExcelFormatterGetWeeksTests(unittest.TestCase):
             '1гр.=3,7,11,15; 2гр.=1,5,9,13н.Создание автоматизированных систем в защищенном исполнении')
         correct_result = [[3, 7, 11, 15], [1, 5, 9, 13]]
         self.assertEqual(result, correct_result)
+
+    def test_get_weeks_31(self):
+        result = self.formatter.get_weeks(
+            'кр. 5 н. Разработка конфигураций в среде "1С: Предприятие" ', is_even=False, max_weeks=17)
+        correct_result = [[1, 3, 7, 9, 11, 13, 15, 17]]
+        self.assertEqual(result, correct_result)
+        
+    def test_get_weeks_32(self):
+        result = self.formatter.get_weeks(
+            '10 н. Разработка конфигураций в среде "1С: Предприятие"  ')
+        correct_result = [[10]]
+        self.assertEqual(result, correct_result)
