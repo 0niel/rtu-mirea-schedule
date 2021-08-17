@@ -96,7 +96,6 @@ class Parser:
         
         get_day_num("СУББОТА") -> 6
         """
-        print(day_name)
         return Parser.days_dict[day_name.upper()]
 
     def _get_month_num(self, month_name: str):
