@@ -44,10 +44,10 @@ class ExcelParser(Parser):
             # получаем значения ячеек в данной строке
             row_values = sheet.row_values(row_index, end_colx=50)
             for cell in row_values:
-                gr = re.findall(r'([А-Я]+-\w+-\w+)', str(cell), re.I)
+                gr = re.search(r'([А-Яа-я]{4}-[0-9]{2}-[0-9]{2})', str(cell), re.I)
                 if gr:
                     group_name_row_num = row_index
-                    break
+                    return group_name_row_num
 
         return group_name_row_num
 
@@ -115,7 +115,7 @@ class ExcelParser(Parser):
         # Название группы
         group = sheet.cell(
             group_name_row_num, discipline_col_num).value
-        group_name = re.search(r'[А-Яа-я]{4}-[0-9]{2}-[0-9]{2}', group)
+        group_name = re.search(r'([А-Яа-я]{4}-[0-9]{2}-[0-9]{2})', group)
 
         if group_name is None:
             raise ValueError(
