@@ -12,3 +12,4 @@ motor==2.4.0
 config
 pdfplumber==0.5.28
 pandas
+selenium

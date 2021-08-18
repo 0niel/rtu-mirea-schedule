@@ -54,10 +54,6 @@ def start_parsing():
         for file_name in files:
             path_to_file = os.path.join(path, file_name)
             file_extension = os.path.splitext(path_to_file)[1]
-            
-            if("ИКиб_маг_2к" in path_to_file):
-                continue
-
             if file_extension == '.pdf':
                 pass
                 # pdf_parser = PDFParser(path_to_file, 

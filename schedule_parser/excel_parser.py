@@ -44,10 +44,10 @@ class ExcelParser(Parser):
             # получаем значения ячеек в данной строке
             row_values = sheet.row_values(row_index, end_colx=50)
             for cell in row_values:
-                gr = re.findall(r'([А-Я]+-\w+-\w+)', str(cell), re.I)
+                gr = re.search(r'([А-Яа-я]{4}-[0-9]{2}-[0-9]{2})', str(cell), re.I)
                 if gr:
                     group_name_row_num = row_index
-                    break
+                    return group_name_row_num
 
         return group_name_row_num
 
@@ -115,7 +115,7 @@ class ExcelParser(Parser):
         # Название группы
         group = sheet.cell(
             group_name_row_num, discipline_col_num).value
-        group_name = re.search(r'[А-Яа-я]{4}-[0-9]{2}-[0-9]{2}', group)
+        group_name = re.search(r'([А-Яа-я]{4}-[0-9]{2}-[0-9]{2})', group)
 
         if group_name is None:
             raise ValueError(
@@ -304,21 +304,20 @@ class ExcelParser(Parser):
             # Если название найдено, то получение расписания этой группы
             if group:
                 group = group.group(0)
-                
-                # обновляем column_range, если левее группы нет
-                # разметки с неделями, используем старый
-                if not group_list and self.__doc_type != DOC_TYPE_EXAM:
-                    column_range = get_semester_column_range(
-                        sheet, group_cell, group_name_row_num)
-                # TODO: парсинг сессии
-                # elif not group_list and self.__doc_type == DOC_TYPE_EXAM:
-                #     column_range = get_exam_column_range(
-                #         sheet, group_cell, group_name_row_num)
-                    
-                if group not in group_list:
-                    group_list.append(group)
-                    try:
-
+                try:
+                    # обновляем column_range, если левее группы нет
+                    # разметки с неделями, используем старый
+                    if not group_list and self.__doc_type != DOC_TYPE_EXAM:
+                        column_range = get_semester_column_range(
+                            sheet, group_cell, group_name_row_num)
+                        
+                    # TODO: парсинг сессии
+                    # elif not group_list and self.__doc_type == DOC_TYPE_EXAM:
+                    #     column_range = get_exam_column_range(
+                    #         sheet, group_cell, group_name_row_num)
+                        
+                    if group not in group_list:
+                        group_list.append(group)
                         if self.__doc_type != DOC_TYPE_EXAM:
                             self._logger.info(f'Parsing {group}')
 
@@ -329,16 +328,18 @@ class ExcelParser(Parser):
 
                             self._schedule.save(
                                 one_time_table['group'], one_time_table['schedule'])
+                            
                         # TODO: реализовать парсинг сессии
                         # else:
                         #     # По номеру столбца
                         #     one_time_table = self.__read_group_for_session(
                         #         sheet, group_name_row.index(group_cell), group_name_row_num, column_range)
-                    except Exception as ex:
-                        self._logger.error(
-                            'Error when parsing {}, file: {}. Message: {}'.format(
-                                group, self.__xlsx_path, str(ex)
-                            ))
+                        
+                except Exception as ex:
+                    self._logger.error(
+                        'Error when parsing {}, file: {}. Message: {}'.format(
+                            group, self.__xlsx_path, str(ex)
+                        ))
 
 
         book.release_resources()
