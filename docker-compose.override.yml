@@ -13,6 +13,8 @@ services:
     volumes: 
       - mongodb_volume:/data/db
   api:
+    privileged: true
+    shm_size: 2g
     build: ./
     ports:
     - 5000:5000
