@@ -304,21 +304,20 @@ class ExcelParser(Parser):
             # Если название найдено, то получение расписания этой группы
             if group:
                 group = group.group(0)
-                
-                # обновляем column_range, если левее группы нет
-                # разметки с неделями, используем старый
-                if not group_list and self.__doc_type != DOC_TYPE_EXAM:
-                    column_range = get_semester_column_range(
-                        sheet, group_cell, group_name_row_num)
-                # TODO: парсинг сессии
-                # elif not group_list and self.__doc_type == DOC_TYPE_EXAM:
-                #     column_range = get_exam_column_range(
-                #         sheet, group_cell, group_name_row_num)
-                    
-                if group not in group_list:
-                    group_list.append(group)
-                    try:
-
+                try:
+                    # обновляем column_range, если левее группы нет
+                    # разметки с неделями, используем старый
+                    if not group_list and self.__doc_type != DOC_TYPE_EXAM:
+                        column_range = get_semester_column_range(
+                            sheet, group_cell, group_name_row_num)
+                        
+                    # TODO: парсинг сессии
+                    # elif not group_list and self.__doc_type == DOC_TYPE_EXAM:
+                    #     column_range = get_exam_column_range(
+                    #         sheet, group_cell, group_name_row_num)
+                        
+                    if group not in group_list:
+                        group_list.append(group)
                         if self.__doc_type != DOC_TYPE_EXAM:
                             self._logger.info(f'Parsing {group}')
 
@@ -329,16 +328,18 @@ class ExcelParser(Parser):
 
                             self._schedule.save(
                                 one_time_table['group'], one_time_table['schedule'])
+                            
                         # TODO: реализовать парсинг сессии
                         # else:
                         #     # По номеру столбца
                         #     one_time_table = self.__read_group_for_session(
                         #         sheet, group_name_row.index(group_cell), group_name_row_num, column_range)
-                    except Exception as ex:
-                        self._logger.error(
-                            'Error when parsing {}, file: {}. Message: {}'.format(
-                                group, self.__xlsx_path, str(ex)
-                            ))
+                        
+                except Exception as ex:
+                    self._logger.error(
+                        'Error when parsing {}, file: {}. Message: {}'.format(
+                            group, self.__xlsx_path, str(ex)
+                        ))
 
 
         book.release_resources()
