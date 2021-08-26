@@ -321,3 +321,9 @@ class ExcelFormatterGetLessonsTests(unittest.TestCase):
         correct_result = [{'name': 'Разработка конфигураций в среде "1С: Предприятие"', 'type': None}]
         self.assertEqual(result, correct_result)
         
+    def test_get_lessons_45(self):
+        result = self.formatter.get_lessons(
+            'История (история России, всеобщая история)')
+        correct_result = [{'name': 'История (история России, всеобщая история)', 'type': None}]
+        self.assertEqual(result, correct_result)
+        

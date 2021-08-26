@@ -71,8 +71,8 @@ class Downloader:
         """
         # проверка на актуальность файла, чтобы скачать именно нужный
         # todo: вынести в отдельный метод
-        if "зима" in path or "лето" in path:
-            return False
+        # if "зима" in path or "лето" in path:
+        #     return False
 
         if os.path.isfile(path):
             # сравнение двух файлов по их размеру
@@ -204,6 +204,7 @@ class Downloader:
         chrome_options.add_argument('--window-size=1420,1080')
         chrome_options.add_argument('--headless')
         chrome_options.add_argument('--disable-gpu')
+        chrome_options.add_argument('--disable-dev-shm-usage')
         driver = webdriver.Chrome(chrome_options=chrome_options)
         page_sources = []
         driver.get(self._url)

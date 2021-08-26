@@ -174,6 +174,16 @@ class ExcelParser(Parser):
     def parse(self):
         """Чтение excel документа и парсинг данных из него в базу MongoDB
         """
+        def fix_weeks_even_num(day_range_list):
+            for i in range(1, len(day_range_list)):
+                if day_range_list[i - 1][2] == 1 and day_range_list[i][2] == 1:
+                    new_lesson_range = (day_range_list[i][0], day_range_list[i][1], 2, day_range_list[i][3])
+                    day_range_list[i] = new_lesson_range
+                elif day_range_list[i - 1][2] == 2 and day_range_list[i][2] == 2:
+                    new_lesson_range = (day_range_list[i][0], day_range_list[i][1], 1, day_range_list[i][3])
+                    day_range_list[i] = new_lesson_range
+            return day_range_list
+        
         def get_semester_column_range(xlsx_sheet, group_name_cell, group_name_row_index):
             """Получение диапазона ячеек недели для типа расписания = семестр
 
@@ -204,8 +214,7 @@ class ExcelParser(Parser):
                     
                     Третий элемент - номер строки в столбце группы, 
                     которой соответствует информация об этой паре.
-            """
-
+            """ 
             # инициализация списка диапазонов пар
             week_range = {
                 1: [],
@@ -310,6 +319,9 @@ class ExcelParser(Parser):
                     if not group_list and self.__doc_type != DOC_TYPE_EXAM:
                         column_range = get_semester_column_range(
                             sheet, group_cell, group_name_row_num)
+                        for i in range(1, len(column_range) + 1):
+                            if len(column_range[i]) > 0:
+                                column_range[i] = fix_weeks_even_num(column_range[i])
                         
                     # TODO: парсинг сессии
                     # elif not group_list and self.__doc_type == DOC_TYPE_EXAM:
@@ -334,7 +346,7 @@ class ExcelParser(Parser):
                         #     # По номеру столбца
                         #     one_time_table = self.__read_group_for_session(
                         #         sheet, group_name_row.index(group_cell), group_name_row_num, column_range)
-                        
+                    
                 except Exception as ex:
                     self._logger.error(
                         'Error when parsing {}, file: {}. Message: {}'.format(
