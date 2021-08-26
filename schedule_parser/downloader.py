@@ -71,8 +71,8 @@ class Downloader:
         """
         # проверка на актуальность файла, чтобы скачать именно нужный
         # todo: вынести в отдельный метод
-        if "зима" in path or "лето" in path:
-            return False
+        # if "зима" in path or "лето" in path:
+        #     return False
 
         if os.path.isfile(path):
             # сравнение двух файлов по их размеру
