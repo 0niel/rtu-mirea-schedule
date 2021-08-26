@@ -147,7 +147,12 @@ class ExcelParser(Parser):
                 lesson_names = sheet.cell(string_index, discipline_col_num).value
                 lesson_types = sheet.cell(string_index, discipline_col_num + 1).value
                 lesson_teachers = sheet.cell(string_index, discipline_col_num + 2).value
-                lesson_rooms = str(sheet.cell(string_index, discipline_col_num + 3).value)
+                lesson_rooms = sheet.cell(string_index, discipline_col_num + 3).value
+                
+                if type(lesson_rooms) == float:
+                    lesson_rooms = str(int(lesson_rooms))
+                elif type(lesson_rooms) == int:
+                    lesson_rooms = str(lesson_rooms)
 
                 ready_lessons = self.__get_lessons(lesson_names, lesson_types, lesson_teachers, lesson_rooms, 
                                                  time_, week_num)
