@@ -124,34 +124,62 @@ class Downloader:
             parse (BeautifulSoup): объект BS для парсинга
         """
         documents_links = []
-        
-        # мы ищем все заголовки в блоках с расписанием, это может быть 
+
+        # мы ищем все заголовки в блоках с расписанием, это может быть
         # заголовок об экзаминационной сесии или т.п.
         schedule_titles = parse.find_all('b', class_='uk-h3')
         for title in schedule_titles:
             if title.text == block_title:
-                # если это расписание занятий, то от носительно него 
-                # получаем главный блок, в котором находятся ссылки на 
+                # если это расписание занятий, то от носительно него
+                # получаем главный блок, в котором находятся ссылки на
                 # документы с расписанием
                 all_divs = title.parent.parent.find_all('div', recursive=False)
                 for i, div in enumerate(all_divs):
                     if block_title in div.text:
-                        # проходимся по всем div'ам начиная от блока с расписанием, 
-                        # заканчивая другим блоком с расписанием. Это нужно, т.к. 
-                        # эти блоки не имеют вложенности и довольно сложно определить 
+                        # проходимся по всем div'ам начиная от блока с расписанием,
+                        # заканчивая другим блоком с расписанием. Это нужно, т.к.
+                        # эти блоки не имеют вложенности и довольно сложно определить
                         # где начинаются и кончаются документы с расписанием для семестра.
                         for j in range(i + 1, len(all_divs)):
                             # 'uk-h3' - класс заголовка расписания
                             if 'uk-h3' not in str(all_divs[j]) and all_divs[j].text != block_title:
-                                 # поиск в HTML Всех классов с разметой Html
-                                document = all_divs[j].find('a', {"class": "uk-link-toggle"})
+                                # поиск в HTML Всех классов с разметой Html
+                                document = all_divs[j].find(
+                                    'a', {"class": "uk-link-toggle"})
                                 if document is not None:
                                     if document['href'] not in documents_links:
-                                        documents_links.append(document['href'])
+                                        documents_links.append(
+                                            document['href'])
                             else:
                                 break
         return documents_links
-    
+
+    def __download_college(self, html):
+        parse_college = BeautifulSoup(html, "html.parser")
+        document = parse_college.find('a', {"class": "uk-link-toggle"})
+        if document is not None:
+            url_file = document['href']
+            divided_path = os.path.split(url_file)
+            file_name = divided_path[1]
+            try:
+                subdir = 'college'
+                path_to_file = os.path.join(
+                    self._base_file_dir, subdir, file_name)
+                os.makedirs(os.path.join(
+                    self._base_file_dir, subdir), exist_ok=True)
+                result = self.__download_schedule(
+                    url_file, path_to_file)
+
+                if result:
+                    self._logger.info(
+                        'Download college: {0}'.format(path_to_file))
+                else:
+                    self._logger.info(
+                        'Skp college: {0}'.format(path_to_file))
+
+            except Exception as ex:
+                self._logger.error(f'[{url_file}] message:' + str(ex))
+
     def download_file(self, url: str, file_path='', attempts=2):
         """Загружает содержимое URL-адреса в файл 
         (с поддержкой больших файлов путем потоковой передачи)
@@ -198,7 +226,7 @@ class Downloader:
             URL, типы файлов для проверки, директории, строго заданы 
             в качестве защищённых полей класса
         """
-        
+
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('--window-size=1420,1080')
@@ -208,24 +236,34 @@ class Downloader:
         driver = webdriver.Chrome(chrome_options=chrome_options)
         page_sources = []
         driver.get(self._url)
-        page_sources.append(driver.find_element_by_css_selector('#tab-content > li.uk-active').get_attribute('innerHTML'))
-        driver.find_element_by_css_selector('#tabs > ul.uk-tab > li:nth-child(2) > a').click()
-        page_sources.append(driver.find_element_by_css_selector('#tab-content > li.uk-active').get_attribute('innerHTML'))
+        page_sources.append(driver.find_element_by_css_selector(
+            '#tab-content > li.uk-active').get_attribute('innerHTML'))
+        driver.find_element_by_css_selector(
+            '#tabs > ul.uk-tab > li:nth-child(2) > a').click()
+        page_sources.append(driver.find_element_by_css_selector(
+            '#tab-content > li.uk-active').get_attribute('innerHTML'))
+
+        # переключение на колледж
+        driver.find_element_by_css_selector(
+            '#tabs > ul.uk-tab > li:nth-child(4) > a').click()
+        college_page_source = driver.find_element_by_css_selector(
+            '#tab-content > li.uk-active').get_attribute('innerHTML')
 
         driver.quit()
-        
+
         for html in page_sources:
             # Объект BS с параметром парсера
             parse = BeautifulSoup(html, "html.parser")
 
             # списки адресов на файлы
-            url_files = self.__parse_links_by_title('Расписание занятий:', parse)
+            url_files = self.__parse_links_by_title(
+                'Расписание занятий:', parse)
             print(url_files)
             # TODO: скачивание сессионных файлов
 
             # количество файлов на скачивание (всего)
             progress_all = len(url_files)
-            
+
             # количество скачанных файлов
             count_file = 0
 
@@ -267,3 +305,5 @@ class Downloader:
 
                 except Exception as ex:
                     self._logger.error(f'[{url_file}] message:' + str(ex))
+
+        self.__download_college(college_page_source)
