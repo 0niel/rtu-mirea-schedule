@@ -51,3 +51,38 @@ class CollegeFormatterTests(unittest.TestCase):
         result = self.formatter.get_weeks('МДК.04.02                                                СОВРЕМЕННЫЕ ТЕХНОЛОГИИ УПРАВЛЕНИЯ СТРУКТУРНЫМ ПОДРАЗДЕЛЕНИЕМ                         Служевенкова О.С.')
         correct_result = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]]
         self.assertEqual(result, correct_result)
+        
+    def test_get_rooms_0(self):
+        result = self.formatter.get_rooms('206  \n/ 329 ')
+        correct_result = ['206', '329']
+        self.assertEqual(result, correct_result)
+        
+    def test_get_rooms_1(self):
+        result = self.formatter.get_rooms(' 270')
+        correct_result = ['270']
+        self.assertEqual(result, correct_result)
+        
+    def test_get_rooms_2(self):
+        result = self.formatter.get_rooms('')
+        correct_result = []
+        self.assertEqual(result, correct_result)
+        
+    def test_get_teachers_0(self):
+        result = self.formatter.get_teachers('ОУД.09                                ФИЗИКА                           Михайлюкова Л.Я.')
+        correct_result = ['Михайлюкова Л.Я.']
+        self.assertEqual(result, correct_result)
+        
+    def test_get_teachers_1(self):
+        result = self.formatter.get_teachers('1 н.                                       ЛИТЕРАТУРА                   Ванькина В.Б.                     2 н.                                           ---------------------')
+        correct_result = ['Ванькина В.Б.']
+        self.assertEqual(result, correct_result)
+        
+    def test_get_teachers_2(self):
+        result = self.formatter.get_teachers('ОУД.03                                  ИНОСТРАННЫЙ ЯЗЫК                                 Олейник А.В.                        Михайлина А.А.')
+        correct_result = ['Олейник А.В.', 'Михайлина А.А.']
+        self.assertEqual(result, correct_result)
+        
+    def test_get_teachers_3(self):
+        result = self.formatter.get_teachers('ОУД.04                             МАТЕМАТИКА: алгебра и начала математического анализа, геометрия            Сапрыгина С.В.')
+        correct_result = ['Сапрыгина С.В.']
+        self.assertEqual(result, correct_result)
