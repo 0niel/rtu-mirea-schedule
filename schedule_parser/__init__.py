@@ -40,8 +40,10 @@ def start_parsing():
     # во избежание рекурсивного включения
     # from .parser import ExcelParser, PDFParse
     from .excel_parser import ExcelParser
+    from schedule_parser.college_parser import CollegeParser
     from .downloader import Downloader
     from schedule_parser.excel_formatter import ExcelFormatter
+    from schedule_parser.college_formatter import CollegeFormatter
     import pandas as pd
 
     downloader = Downloader(
@@ -50,6 +52,7 @@ def start_parsing():
     
     # директория, в которой хранятся excel документы
     xlsx_dir = 'documents/semester'
+    college_dir = 'documents/college'
     for path, _, files in os.walk(xlsx_dir):
         for file_name in files:
             path_to_file = os.path.join(path, file_name)
@@ -63,3 +66,8 @@ def start_parsing():
                 excel_parser = ExcelParser(path_to_file, 'semester', ExcelFormatter(),
                                            path_to_error_log='excel_parser.log')
                 excel_parser.parse()
+    for path, _, files in os.walk(college_dir):
+        for file_name in files:
+            path_to_file = os.path.join(path, file_name)
+            college_parser = CollegeParser(path_to_file, CollegeFormatter(), path_to_error_log='excel_parser.log')
+            college_parser.parse()

@@ -26,7 +26,7 @@ class CollegeFormatter(Formatter):
                 lessons_weeks_match = re.findall(r'(?:\d\s*н[.\s+]*)', lesson)
                 if len(lessons_weeks_match) > 0:
                     for week_substr in lessons_weeks_match:
-                        week = int(week_substr.strip().split()[0])
+                        week = int(re.search(r'\d', week_substr).group(0))
                         if week == 1:
                             result.append([x for x in range(1, max_weeks + 1) if x % 2 == 1])
                         elif week == 2:
