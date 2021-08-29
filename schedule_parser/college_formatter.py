@@ -4,21 +4,6 @@ from schedule_parser.formatter import Formatter
 
 
 class CollegeFormatter(Formatter):
-    """Реализация форматирования ячеек excel таблицы расписания к нужному формату.
-    
-    Methods
-    -------
-    format_lesson_name(self, temp_name: str)
-        Форматирование ячейки с названием предмета, получение названия и 
-        списка недель.
-    format_room_name(self, cell)
-        Форматирование ячейки с аудиториями предмета. 
-    format_teacher_name(self, teachers_names)
-        Форматирования ячейки имён преподавателей.
-    format_other(self, cell)
-        Прочее форматирование.
-    """
-
     def get_rooms(self, rooms: str):
         if len(rooms) > 1:
             rooms = rooms.split('/')
