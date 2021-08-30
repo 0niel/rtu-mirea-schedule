@@ -147,8 +147,8 @@ class CollegeParser(Parser):
                 lesson_types = 'пр'
                 lesson_teachers = sheet.cell(
                     string_index, discipline_col_num).value
-                lesson_rooms = str(sheet.cell(
-                    string_index, discipline_col_num + 1).value)
+                lesson_rooms = sheet.cell(
+                    string_index, discipline_col_num + 1).value
 
                 lesson_rooms = str(int(lesson_rooms)) if isinstance(
                     lesson_rooms, float) else str(lesson_rooms)
