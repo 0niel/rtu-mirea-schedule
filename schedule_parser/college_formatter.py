@@ -68,7 +68,22 @@ class CollegeFormatter(Formatter):
 
         for i in range(len(result)):
             result[i] = remove_other(result[i])
-           
+            lesson_preffix_regexp = r'(?:(?:[а-яА-Я])+(?:\.\d+)+)'
+            lesson_preffix = re.search(lesson_preffix_regexp, result[i])
+            lesson_preffix = lesson_preffix.group(0) + ' ' if lesson_preffix is not None else ''
+            result[i] = result[i].replace(lesson_preffix, '').strip()
+            words = result[i].split(' ')
+            
+            first_upper_found = False
+            for j in range(len(words)):
+                if words[j].isupper() and first_upper_found is False:
+                    first_upper_found = True
+                    words[j] = words[j].title()
+                else:
+                    words[j] = words[j].lower()
+                
+            result[i] = lesson_preffix +  ' '.join(words)
+            
         return [lesson for lesson in result if lesson != '']
 
     def get_types(self, cell: str) -> list:

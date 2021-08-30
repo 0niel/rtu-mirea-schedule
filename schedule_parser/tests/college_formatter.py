@@ -18,18 +18,18 @@ class CollegeFormatterTests(unittest.TestCase):
     def test_get_lessons_0(self):
         result = self.formatter.get_lessons(
             'МДК.04.02                                                СОВРЕМЕННЫЕ ТЕХНОЛОГИИ УПРАВЛЕНИЯ СТРУКТУРНЫМ ПОДРАЗДЕЛЕНИЕМ                         Служевенкова О.С.')
-        correct_result = ['МДК.04.02 СОВРЕМЕННЫЕ ТЕХНОЛОГИИ УПРАВЛЕНИЯ СТРУКТУРНЫМ ПОДРАЗДЕЛЕНИЕМ']
+        correct_result = ['МДК.04.02 Современные технологии управления структурным подразделением']
         self.assertEqual(result, correct_result)
         
     def test_get_lessons_1(self):
         result = self.formatter.get_lessons(
             '1 н.                                                                ОП.15                                              ТЕОРИЯ ИНФОРМАЦИОННЫХ СИСТЕМ                                       Стоколос М.Д.                                                                             2 н.                                                          ОП.14                                              ИНФОРМАЦИОННАЯ БЕЗОПАСНОСТЬ                        Черный Д.В.                                                    ')
-        correct_result = ['ОП.15 ТЕОРИЯ ИНФОРМАЦИОННЫХ СИСТЕМ', 'ОП.14 ИНФОРМАЦИОННАЯ БЕЗОПАСНОСТЬ']
+        correct_result = ['ОП.15 Теория информационных систем', 'ОП.14 Информационная безопасность']
         self.assertEqual(result, correct_result)
         
     def test_get_lessons_2(self):
         result = self.formatter.get_lessons('1 н.                                       ОГСЭ.01                               ОСНОВЫ ФИЛОСОФИИ                      Тихомирова А.Ю.                  2 н.                                            --------------------------')
-        correct_result = ['ОГСЭ.01 ОСНОВЫ ФИЛОСОФИИ']
+        correct_result = ['ОГСЭ.01 Основы философии']
         self.assertEqual(result, correct_result)
         
     def test_get_lessons_3(self):
