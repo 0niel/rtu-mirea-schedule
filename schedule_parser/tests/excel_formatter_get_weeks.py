@@ -217,3 +217,9 @@ class ExcelFormatterGetWeeksTests(unittest.TestCase):
             'История (история России, всеобщая история)', is_even=None, max_weeks=17)
         correct_result = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]]
         self.assertEqual(result, correct_result)
+        
+    def test_get_weeks_34(self):
+        result = self.formatter.get_weeks(
+            '3,5 н. Введение в профессиональную деятельность \n7,9 н. Введение в профессиональную деятельность\n11,13 н. Введение в профессиональную деятельность деятельность\n15,17 н. Введение в профессиональную деятельность')
+        correct_result = [[3, 5], [7, 9], [11, 13], [15, 17]]
+        self.assertEqual(result, correct_result)

@@ -177,6 +177,12 @@ class ExcelFormatter(Formatter):
        
         return result
 
+    def __fix_typos(self, names: str) -> str:
+        """Исправление ошибок и опечаток в документе"""
+        names = re.sub(r'деятельность\s*деятельность', 'деятельность', names)
+        
+        return names
+
     def get_rooms(self, rooms: str):
         for pattern in Parser.notes_dict:
             regex_result = re.findall(pattern, rooms, flags=re.A)
@@ -278,6 +284,8 @@ class ExcelFormatter(Formatter):
             return weeks_result
 
         result = []
+        
+        lesson = self.__fix_typos(lesson)
 
         lessons = self.__split_lessons(lesson)
 
@@ -375,6 +383,8 @@ class ExcelFormatter(Formatter):
             lesson = lesson.strip()
 
             return lesson
+
+        lesson = self.__fix_typos(lesson)
 
         result = self.__split_lessons(lesson)
 
