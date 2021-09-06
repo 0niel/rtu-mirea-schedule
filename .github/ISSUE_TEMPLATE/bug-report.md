@@ -1,9 +1,9 @@
 ---
 name: Bug report
 about: Создайте отчет, который поможет нам исправить имеющиеся проблемы
-title: "[Bug]"
+title: "[BUG]"
 labels: bug
-assignees: ''
+assignees: 0niel
 
 ---
 
