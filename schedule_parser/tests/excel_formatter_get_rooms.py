@@ -30,3 +30,18 @@ class ExcelFormatterGetRoomsTests(unittest.TestCase):
         correct_result = ['Проспект Вернадского, д.78 А318 429']
         self.assertEqual(result, correct_result)
         
+    def test_get_rooms_3(self):
+        result = self.formatter.get_rooms('И-304\nИ-306')
+        correct_result = ['И-304', 'И-306']
+        self.assertEqual(result, correct_result)
+        
+    def test_get_rooms_4(self):
+        result = self.formatter.get_rooms('ИВЦ-107')
+        correct_result = ['ИВЦ-107']
+        self.assertEqual(result, correct_result)
+        
+    def test_get_rooms_5(self):
+        result = self.formatter.get_rooms('МП-1  \nА-301')
+        correct_result = ['ул. Малая Пироговская, д.1 А-301']
+        self.assertEqual(result, correct_result)
+        

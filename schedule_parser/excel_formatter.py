@@ -9,18 +9,6 @@ from schedule_parser.formatter import Formatter
 
 class ExcelFormatter(Formatter):
     """Реализация форматирования ячеек excel таблицы расписания к нужному формату.
-    
-    Methods
-    -------
-    format_lesson_name(self, temp_name: str)
-        Форматирование ячейки с названием предмета, получение названия и 
-        списка недель.
-    format_room_name(self, cell)
-        Форматирование ячейки с аудиториями предмета. 
-    format_teacher_name(self, teachers_names)
-        Форматирования ячейки имён преподавателей.
-    format_other(self, cell)
-        Прочее форматирование.
     """
 
     def __format_subgroups_and_type(self, lesson: str) -> list:
@@ -104,6 +92,19 @@ class ExcelFormatter(Formatter):
         return result   
 
     def __split_lessons(self, lessons: str) -> list:
+        """Разбивает строку с предметами на список названий предметов.
+
+        Args:
+            lessons (str): значение ячейки, в которой содержатся 
+            названия предметов.
+
+        Returns:
+            list: список названий предметов
+            
+            Пример:
+            self.__split_lessons('1-3 н. Мат. анализ\nЛинейная алгебра') 
+                -> ['1-3 н. Мат. анализ', 'Линейная алгебра']
+        """
         result = []
         
         # несколько предметов в одной ячейке и разделены 
@@ -184,13 +185,13 @@ class ExcelFormatter(Formatter):
         return names
 
     def get_rooms(self, rooms: str):
-        for pattern in Parser.notes_dict:
+        for pattern in self.notes_dict:
             regex_result = re.findall(pattern, rooms, flags=re.A)
             if regex_result:
                 rooms = rooms.replace('  ', '').replace(
                     '*', '').replace('\n', '')
                 rooms = re.sub(
-                    regex_result[0], Parser.notes_dict[regex_result[0]] + " ", rooms, flags=re.A)
+                    regex_result[0], self.notes_dict[regex_result[0]] + " ", rooms, flags=re.A)
 
         splitted_rooms = re.split(r' {2,}|\n', rooms)
         return [room for room in splitted_rooms if room != '']
@@ -357,8 +358,7 @@ class ExcelFormatter(Formatter):
             result.append(total_weeks)
 
         return result
-    # first \d+(?:[-,\s.]\d+)*\s*(?:нед|н)?[.\s]*\(?(?:кроме|кр)?(?![.\s,\-\d]*(?:подгруппа|подгруп|подгр|п\/г|группа|гр))[.\s]*
-    # second \d+(?:[-,\s.]\d+)*\s*(?:нед|н)?(?![.\s]*(?:подгруппа|подгруп|подгр|п\/г|группа|гр))[.\s]*
+
     def get_lessons(self, lesson: str) -> list:      
         def remove_other(lesson):
             # числа через запятую или тире
@@ -401,4 +401,5 @@ class ExcelFormatter(Formatter):
         return [lesson for lesson in result if lesson['name'] != '']
 
     def get_types(self, cell: str) -> list:
-        pass
+        splitted_types = re.split(r' {2,}|\n|,', cell)
+        return [lesson_type.strip() for lesson_type in splitted_types if lesson_type != '']
