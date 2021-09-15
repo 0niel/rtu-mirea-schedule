@@ -2,6 +2,9 @@
 
 Forked from https://github.com/RTUITLab/Schedule-RTU-API
 
+Based on https://github.com/YaSlavar/parser_mirea
+
+
 Service for getting jsons with a schedule for a given group of RTU MIREA
 
 # Build service from Docker image
