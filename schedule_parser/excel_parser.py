@@ -266,6 +266,9 @@ class ExcelParser(Parser):
                         lesson_num_val = int(lesson_num_val)
                         if lesson_num_val > lesson_count:
                             lesson_count = lesson_num_val
+                        elif lesson_num_val == 7 and lesson_count == 7 or lesson_num_val == 8 and lesson_count == 8:
+                            lesson_count += 1
+                            
 
                 # получаем время начала пары
                 lesson_time_col = xlsx_sheet.cell(
