@@ -226,31 +226,35 @@ class Downloader:
             URL, типы файлов для проверки, директории, строго заданы 
             в качестве защищённых полей класса
         """
-
-        chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_argument('--no-sandbox')
-        chrome_options.add_argument('--window-size=1420,1080')
-        chrome_options.add_argument('--headless')
-        chrome_options.add_argument('--disable-gpu')
-        chrome_options.add_argument('--disable-dev-shm-usage')
-        driver = webdriver.Chrome(chrome_options=chrome_options)
         page_sources = []
-        driver.get(self._url)
-        page_sources.append(driver.find_element_by_css_selector(
-            '#tab-content > li.uk-active').get_attribute('innerHTML'))
-        driver.find_element_by_css_selector(
-            '#tabs > ul.uk-tab > li:nth-child(2) > a').click()
-        page_sources.append(driver.find_element_by_css_selector(
-            '#tab-content > li.uk-active').get_attribute('innerHTML'))
+        college_page_source = None
+        
+        try:            
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.add_argument('--no-sandbox')
+            chrome_options.add_argument('--window-size=1420,1080')
+            chrome_options.add_argument('--headless')
+            chrome_options.add_argument('--disable-gpu')
+            chrome_options.add_argument('--disable-dev-shm-usage')
+            driver = webdriver.Chrome(chrome_options=chrome_options)
+            driver.get(self._url)
+            page_sources.append(driver.find_element_by_css_selector(
+                '#tab-content > li.uk-active').get_attribute('innerHTML'))
+            driver.find_element_by_css_selector(
+                '#tabs > ul.uk-tab > li:nth-child(2) > a').click()
+            page_sources.append(driver.find_element_by_css_selector(
+                '#tab-content > li.uk-active').get_attribute('innerHTML'))
 
-        # переключение на колледж
-        driver.find_element_by_css_selector(
-            '#tabs > ul.uk-tab > li:nth-child(4) > a').click()
-        college_page_source = driver.find_element_by_css_selector(
-            '#tab-content > li.uk-active').get_attribute('innerHTML')
+            # переключение на колледж
+            driver.find_element_by_css_selector(
+                '#tabs > ul.uk-tab > li:nth-child(4) > a').click()
+            college_page_source = driver.find_element_by_css_selector(
+                '#tab-content > li.uk-active').get_attribute('innerHTML')
 
-        driver.quit()
-
+            driver.quit()
+        except Exception as ex:
+            self._logger.error(f'Chromium start error. Message: ' + str(ex))
+                    
         for html in page_sources:
             # Объект BS с параметром парсера
             parse = BeautifulSoup(html, "html.parser")
@@ -305,5 +309,6 @@ class Downloader:
 
                 except Exception as ex:
                     self._logger.error(f'[{url_file}] message:' + str(ex))
-
-        self.__download_college(college_page_source)
+        
+        if college_page_source is not None:
+            self.__download_college(college_page_source)
