@@ -63,7 +63,7 @@ class ExcelParser(Parser):
         
         # Получение данных об одной паре
         lesson_names = self.__formatter.get_lessons(names)
-        lesson_types = types
+        lesson_types =  self.__formatter.get_types(types)
         lesson_teachers = self.__formatter.get_teachers(teachers)
         lesson_rooms = self.__formatter.get_rooms(rooms)
         
@@ -76,11 +76,14 @@ class ExcelParser(Parser):
         lessons_len = len(lesson_names)
         if lessons_len != 0:
             for i in range(lessons_len):
+                types_by_lesson = get_param(lessons_len, i, lesson_types)
+                types_by_lesson = '' if len(types_by_lesson) == 0 else types_by_lesson[0]
+                
                 name = lesson_names[i]['name']
                 teacher = get_param(lessons_len, i, lesson_teachers)
                 rooms = get_param(lessons_len, i, lesson_rooms)
                 weeks = lesson_weeks[i]
-                type_ = lesson_names[i]['type'] if lesson_names[i]['type'] is not None else lesson_types
+                type_ = lesson_names[i]['type'] if lesson_names[i]['type'] is not None else types_by_lesson
                 time_start = times['start']
                 time_end = times['end']
                 
@@ -103,7 +106,6 @@ class ExcelParser(Parser):
                 lessons.append(one_lesson)
         
         return lessons
-
 
     def __read_group_for_semester(self, sheet, discipline_col_num,
                                       group_name_row_num, cell_range):
@@ -180,6 +182,10 @@ class ExcelParser(Parser):
         """Чтение excel документа и парсинг данных из него в базу MongoDB
         """
         def fix_weeks_even_num(day_range_list):
+            """В расписании бывают ошибки, когда 2 пары подрят стоят на 
+            неделе одной чётности. Получается, что 2 пары проходят в 
+            одно время, чего быть не может. Данный метод исправляет это.
+            """
             for i in range(1, len(day_range_list)):
                 if day_range_list[i - 1][2] == 1 and day_range_list[i][2] == 1:
                     new_lesson_range = (day_range_list[i][0], day_range_list[i][1], 2, day_range_list[i][3])
@@ -260,6 +266,9 @@ class ExcelParser(Parser):
                         lesson_num_val = int(lesson_num_val)
                         if lesson_num_val > lesson_count:
                             lesson_count = lesson_num_val
+                        elif lesson_num_val == 7 and lesson_count == 7 or lesson_num_val == 8 and lesson_count == 8:
+                            lesson_count += 1
+                            
 
                 # получаем время начала пары
                 lesson_time_col = xlsx_sheet.cell(
