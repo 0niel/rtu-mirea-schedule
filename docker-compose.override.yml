@@ -15,11 +15,11 @@ services:
   api:
     privileged: true
     shm_size: 2g
-    build: ./
+    build: ./app
     ports:
     - 5000:5000
     environment:
-    - API_SECRET=
+    - SECRET_REFRESH_KEY=
   refresh_invoker:
     build: ./refresh_invoker
   proxy:
