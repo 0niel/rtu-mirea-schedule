@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
 
 # install google chrome
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
@@ -14,14 +14,15 @@ RUN unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
 # set display port to avoid crash
 ENV DISPLAY=:99
 
-WORKDIR /app
 RUN pip install --upgrade pip
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
 COPY . /app
 
+WORKDIR /
+
 EXPOSE 5000
 
-CMD alembic upgrade head && \
-    gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0 --port 5000
+
+CMD gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:5000 --timeout 300
