@@ -1,6 +1,6 @@
 version: '3.8'
 
-volumes: 
+volumes:
   mongodb_volume:
 
 services:
@@ -10,7 +10,7 @@ services:
     hostname: mongodb
     ports:
       - 27017:27017
-    volumes: 
+    volumes:
       - mongodb_volume:/data/db
   api:
     privileged: true
@@ -20,6 +20,7 @@ services:
     - 5000:5000
     environment:
     - SECRET_REFRESH_KEY=
+    - MONGODB_URL=mongodb://mongodb:27017/
   refresh_invoker:
     build: ./refresh_invoker
   proxy:
