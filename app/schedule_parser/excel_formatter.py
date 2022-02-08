@@ -188,8 +188,8 @@ class ExcelFormatter(Formatter):
     def __fix_typos(self, names: str) -> str:
         """Исправление ошибок и опечаток в документе"""
         names = re.sub(r'деятельность\s*деятельность', 'деятельность', names)
-        names = re.sub(r'^Военная$', 'Военная подготовка', names)
-        names = re.sub(r'^подготовка$', 'Военная подготовка', names)
+        names = re.sub(r'^Военная$', 'Военная подготовка', names, flags=re.MULTILINE)
+        names = re.sub(r'^подготовка$', 'Военная подготовка', names, re.MULTILINE)
 
         return names
 
