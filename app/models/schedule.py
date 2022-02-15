@@ -1,6 +1,7 @@
 from pydantic import Field, BaseModel
 from typing import List
 
+
 class WeekResponse(BaseModel):
     week: int
 
@@ -36,3 +37,13 @@ class ScheduleModel(BaseModel):
 class ScheduleModelResponse(BaseModel):
     group: str
     schedule: ScheduleModel
+
+
+class TeacherLessonModel(BaseModel):
+    weekday: int
+    lesson_number: int
+    lesson: LessonModel
+
+
+class TeacherSchedulesModel(BaseModel):
+    schedules: List[TeacherLessonModel]
