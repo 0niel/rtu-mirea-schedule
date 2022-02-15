@@ -3,7 +3,7 @@ import datetime
 
 class ScheduleUtils:
     @staticmethod
-    def get_week(date=None) -> int:
+    def get_week(date: datetime.date = None) -> int:
         """Возвращает номер учебной недели по дате
 
         Args:
@@ -23,7 +23,7 @@ class ScheduleUtils:
         return week
 
     @staticmethod
-    def get_semester_start(date=None) -> datetime.datetime:
+    def get_semester_start(date: datetime.date = None) -> datetime.datetime:
         """Возвращает дату начала семестра по дате
 
         Args:
