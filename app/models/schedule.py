@@ -1,6 +1,9 @@
 from pydantic import Field, BaseModel
 from typing import List
 
+class WeekResponse(BaseModel):
+    week: int
+
 
 class GroupsListResponse(BaseModel):
     count: int

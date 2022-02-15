@@ -2,10 +2,11 @@ from fastapi import APIRouter, Depends, Path
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_404_NOT_FOUND
+from app.core.schedule_utils import ScheduleUtils
 
 from app.database.database import AsyncIOMotorClient, get_database
-from app.models.schedule import GroupsListResponse, ScheduleModelResponse
-from app.schedule_parser import start_parsing
+from app.models.schedule import GroupsListResponse, ScheduleModelResponse, WeekResponse
+from app.core.schedule_parser import start_parsing
 from app.crud.schedule import get_full_schedule, get_groups
 from app.core.config import SECRET_REFRESH_KEY
 
@@ -67,3 +68,12 @@ async def groups_list(db: AsyncIOMotorClient = Depends(get_database)):
         groups=groups, count=len(groups))
 
     return groups_response
+
+
+@router.get(
+    '/schedule/current_week',
+    response_description="Get current week",
+    response_model=WeekResponse
+)
+async def current_week():
+    return WeekResponse(week=ScheduleUtils.get_week(ScheduleUtils.now_date()))
