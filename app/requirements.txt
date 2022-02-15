@@ -13,3 +13,4 @@ config
 pdfplumber==0.5.28
 pandas
 selenium
+pytz
