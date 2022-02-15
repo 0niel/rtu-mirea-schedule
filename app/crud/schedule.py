@@ -1,7 +1,7 @@
 from calendar import weekday
 from typing import List
 
-from app.models.schedule import LessonModel, ScheduleModelResponse, ScheduleModel, TeacherLessonModel, TeacherSchedulesModel
+from app.models.schedule import LessonModel, ScheduleModelResponse, ScheduleModel, TeacherLessonModel, TeacherSchedulesModelResponse
 from app.core.config import DATABASE_NAME, SCHEDULE_COLLECTION_NAME
 from app.database.database import AsyncIOMotorClient
 
@@ -52,7 +52,7 @@ async def get_groups(conn: AsyncIOMotorClient) -> List[str]:
         return groups
 
 
-async def find_teacher(conn: AsyncIOMotorClient, teacher_name: str) -> TeacherSchedulesModel:
+async def find_teacher(conn: AsyncIOMotorClient, teacher_name: str) -> TeacherSchedulesModelResponse:
     # todo: [А-Яа-я]+\s+[А-Яа-я]\.\s*[А-Я]\.
     request_data = {'$or': [
         {"schedule.monday.lessons": {'$elemMatch': {
@@ -95,7 +95,7 @@ async def find_teacher(conn: AsyncIOMotorClient, teacher_name: str) -> TeacherSc
                                 weekday=i, lesson_number=lesson_num, lesson=LessonModel(**lesson))
                             result.append(teacher_lesson)
     
-    teacher_schedule = TeacherSchedulesModel(schedules=result)
+    teacher_schedule = TeacherSchedulesModelResponse(schedules=result)
 
     if len(result) > 0:
         return teacher_schedule

@@ -5,7 +5,7 @@ from starlette.status import HTTP_404_NOT_FOUND
 from app.core.schedule_utils import ScheduleUtils
 
 from app.database.database import AsyncIOMotorClient, get_database
-from app.models.schedule import GroupsListResponse, ScheduleModelResponse, TeacherSchedulesModel, WeekResponse
+from app.models.schedule import GroupsListResponse, ScheduleModelResponse, TeacherSchedulesModelResponse, WeekModelResponse
 from app.core.schedule_parser import start_parsing
 from app.crud.schedule import find_teacher, get_full_schedule, get_groups
 from app.core.config import SECRET_REFRESH_KEY
@@ -73,16 +73,16 @@ async def groups_list(db: AsyncIOMotorClient = Depends(get_database)):
 @router.get(
     '/schedule/current_week',
     response_description="Get current week",
-    response_model=WeekResponse
+    response_model=WeekModelResponse
 )
 async def current_week():
-    return WeekResponse(week=ScheduleUtils.get_week(ScheduleUtils.now_date()))
+    return WeekModelResponse(week=ScheduleUtils.get_week(ScheduleUtils.now_date()))
 
 
 @router.get(
     '/schedule/teacher/{teacher_name}',
     response_description="Find teacher schedule by teacher name",
-    response_model=TeacherSchedulesModel
+    response_model=TeacherSchedulesModelResponse
 )
 async def teacher_schedule(
     teacher_name: str = Path(...),

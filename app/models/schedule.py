@@ -2,7 +2,7 @@ from pydantic import Field, BaseModel
 from typing import List
 
 
-class WeekResponse(BaseModel):
+class WeekModelResponse(BaseModel):
     week: int
 
 
@@ -45,5 +45,5 @@ class TeacherLessonModel(BaseModel):
     lesson: LessonModel
 
 
-class TeacherSchedulesModel(BaseModel):
+class TeacherSchedulesModelResponse(BaseModel):
     schedules: List[TeacherLessonModel]
