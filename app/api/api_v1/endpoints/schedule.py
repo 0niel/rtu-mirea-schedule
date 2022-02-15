@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends, Path
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException
@@ -5,9 +6,9 @@ from starlette.status import HTTP_404_NOT_FOUND
 from app.core.schedule_utils import ScheduleUtils
 
 from app.database.database import AsyncIOMotorClient, get_database
-from app.models.schedule import GroupsListResponse, ScheduleModelResponse, TeacherSchedulesModelResponse, WeekModelResponse
+from app.models.schedule import GroupsListResponse, ScheduleModelResponse, ScheduleUpdateModel, TeacherSchedulesModelResponse, WeekModelResponse
 from app.core.schedule_parser import start_parsing
-from app.crud.schedule import find_teacher, get_full_schedule, get_groups
+from app.crud.schedule import find_teacher, get_all_schedule_updates, get_full_schedule, get_groups, get_schedule_update_by_group
 from app.core.config import SECRET_REFRESH_KEY
 
 
@@ -97,3 +98,42 @@ async def teacher_schedule(
         )
 
     return schedule
+
+
+@router.get(
+    '/schedule/update/{group}',
+    response_description="Get the schedule update date for the group",
+    response_model=ScheduleUpdateModel
+)
+async def group_schedule_update(
+    group: str = Path(...),
+    db: AsyncIOMotorClient = Depends(get_database)
+):
+    update = await get_schedule_update_by_group(db, group)
+
+    if not update:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND,
+            detail=f"Schedule updates for {group} not found",
+        )
+
+    return update
+
+
+@router.get(
+    '/schedule/updates/',
+    response_description="Get a list of schedule updates for all groups",
+    response_model=List[ScheduleUpdateModel]
+)
+async def group_schedule_update(
+    db: AsyncIOMotorClient = Depends(get_database)
+):
+    updates = await get_all_schedule_updates(db)
+
+    if not updates:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND,
+            detail=f"Schedule updates not found",
+        )
+
+    return updates

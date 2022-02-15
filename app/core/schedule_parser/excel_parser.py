@@ -17,7 +17,6 @@ class ExcelParser(Parser):
         self.__xlsx_path = document_path
         self.__doc_type = self.doc_type_list[doc_type]
         self.__formatter = formatter
-        self.__csv_data = []
 
         super().__init__(conn, path_to_error_log=path_to_error_log)
 
@@ -377,5 +376,4 @@ class ExcelParser(Parser):
 
         book.release_resources()
         del book
-        return self.__csv_data
-        # return group_list
+        return group_list
