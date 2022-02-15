@@ -1,3 +1,4 @@
+import datetime
 from tokenize import group
 from pydantic import Field, BaseModel
 from typing import List
@@ -49,3 +50,8 @@ class TeacherLessonModel(BaseModel):
 
 class TeacherSchedulesModelResponse(BaseModel):
     schedules: List[TeacherLessonModel]
+
+
+class ScheduleUpdateModel(BaseModel):
+    groups: List[str]
+    updated_at: datetime.datetime

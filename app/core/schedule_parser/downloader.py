@@ -71,21 +71,38 @@ class Downloader:
         # todo: вынести в отдельный метод
         # if "зима" in path or "лето" in path:
         #     return False
+        
+         # "_LATEST" будет означать, что расписание актуально
+         # и заново парсить группы из этого документа не нужно
+        actual_file_name = '_LATEST'
 
+        file_path = None
         if os.path.isfile(path):
+            file_path = path
+        elif os.path.isfile(path + actual_file_name):
+            file_path = path + actual_file_name
+
+        if file_path:
             # сравнение двух файлов по их размеру
             # кажется, что это является ненадёжной штукой
-            # todo: реализовать более надёжное сравнение файлов
-            # (например, по времени изменения)
-            old_file_size = os.path.getsize(path)
+            old_file_size = os.path.getsize(file_path)
             new_file_size = len(requests.get(url).content)
+
             if old_file_size != new_file_size:
                 try:
-                    self.download_file(url, file_path=path)
+                    # если появился более новый файл, то убираем '_LATEST',
+                    # чтобы запустился парсинг групп
+                    if actual_file_name in file_path:
+                        file_path_to_rename = file_path
+                        file_path = file_path.replace(actual_file_name, '')
+                        os.rename(file_path_to_rename, file_path)
+                    self.download_file(url, file_path=file_path)
                     return True
                 except Exception as ex:
                     self._logger.error(f'Download failed with error: {ex}')
             else:
+                if actual_file_name not in file_path:
+                    os.rename(file_path, file_path + actual_file_name)
                 return False
 
         try:
@@ -263,7 +280,7 @@ class Downloader:
             # списки адресов на файлы
             url_files = self.__parse_links_by_title(
                 'Расписание занятий:', parse)
-            print(url_files)
+
             # TODO: скачивание сессионных файлов
 
             # количество файлов на скачивание (всего)

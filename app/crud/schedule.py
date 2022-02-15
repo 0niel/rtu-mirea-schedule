@@ -1,8 +1,9 @@
 from calendar import weekday
+from turtle import update
 from typing import List
 
-from app.models.schedule import LessonModel, ScheduleModelResponse, ScheduleModel, TeacherLessonModel, TeacherSchedulesModelResponse
-from app.core.config import DATABASE_NAME, SCHEDULE_COLLECTION_NAME
+from app.models.schedule import LessonModel, ScheduleModelResponse, ScheduleModel, ScheduleUpdateModel, TeacherLessonModel, TeacherSchedulesModelResponse
+from app.core.config import DATABASE_NAME, SCHEDULE_COLLECTION_NAME, SCHEDULE_UPDATES_COLLECTION
 from app.database.database import AsyncIOMotorClient
 
 
@@ -100,3 +101,37 @@ async def find_teacher(conn: AsyncIOMotorClient, teacher_name: str) -> TeacherSc
 
     if len(result) > 0:
         return teacher_schedule
+
+
+async def update_schedule_updates(conn: AsyncIOMotorClient, updates: List[ScheduleUpdateModel]):
+    for update in updates:
+        groups_list = []
+        request_to_db = {'$or': groups_list}
+        for group in update.groups:
+            groups_list.append({"groups": {'$elemMatch': {'$regex': group}}})
+
+        update_in_db = await conn[DATABASE_NAME][SCHEDULE_UPDATES_COLLECTION].find_one(request_to_db)
+
+        if update_in_db:
+            await conn[DATABASE_NAME][SCHEDULE_UPDATES_COLLECTION].update_one({'_id': update_in_db['_id']}, {"$set": update.dict()})
+        else:
+            await conn[DATABASE_NAME][SCHEDULE_UPDATES_COLLECTION].insert_one(update.dict())
+
+
+async def get_all_schedule_updates(conn: AsyncIOMotorClient) -> List[ScheduleUpdateModel]:
+    cursor = conn[DATABASE_NAME][SCHEDULE_UPDATES_COLLECTION].find(
+        {}, {'_id': 0})
+
+    updates = await cursor.to_list(None)
+    updates = [ScheduleUpdateModel(**update) for update in updates]
+
+    if len(updates) > 0:
+        return updates
+
+
+async def get_schedule_update_by_group(conn: AsyncIOMotorClient, group: str) -> ScheduleUpdateModel:
+    update = await conn[DATABASE_NAME][SCHEDULE_UPDATES_COLLECTION].find_one(
+        {"groups": {'$elemMatch': {'$regex': group}}}, {'_id': 0})
+
+    if update:
+        return ScheduleUpdateModel(**update)

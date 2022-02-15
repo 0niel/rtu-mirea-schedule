@@ -20,7 +20,6 @@ class CollegeParser(Parser):
     ):
         self.__xlsx_path = document_path
         self.__formatter = formatter
-        self.__csv_data = []
 
         super().__init__(conn, path_to_error_log=path_to_error_log)
 
@@ -330,4 +329,4 @@ class CollegeParser(Parser):
 
         book.release_resources()
         del book
-        return self.__csv_data
+        return group_list
