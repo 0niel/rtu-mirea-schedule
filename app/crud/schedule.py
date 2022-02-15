@@ -74,7 +74,7 @@ async def find_teacher(conn: AsyncIOMotorClient, teacher_name: str) -> TeacherSc
     schedules = await cursor.to_list(None)
 
     result = []
-    
+
     for schedule in schedules:
         schedule_with_num_keys = {
             '1': schedule['schedule']['monday'],
@@ -92,9 +92,10 @@ async def find_teacher(conn: AsyncIOMotorClient, teacher_name: str) -> TeacherSc
                     for teacher in lesson['teachers']:
                         if teacher.lower().find(teacher_name.lower()) != -1:
                             teacher_lesson = TeacherLessonModel(
-                                weekday=i, lesson_number=lesson_num, lesson=LessonModel(**lesson))
+                                group=schedule['group'], weekday=i,
+                                lesson_number=lesson_num, lesson=LessonModel(**lesson))
                             result.append(teacher_lesson)
-    
+
     teacher_schedule = TeacherSchedulesModelResponse(schedules=result)
 
     if len(result) > 0:

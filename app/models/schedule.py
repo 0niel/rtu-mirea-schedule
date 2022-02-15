@@ -1,3 +1,4 @@
+from tokenize import group
 from pydantic import Field, BaseModel
 from typing import List
 
@@ -40,6 +41,7 @@ class ScheduleModelResponse(BaseModel):
 
 
 class TeacherLessonModel(BaseModel):
+    group: str
     weekday: int
     lesson_number: int
     lesson: LessonModel
