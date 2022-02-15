@@ -3,8 +3,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import xlrd
 from .formatter import Formatter
 from .parser import Parser
-from ..crud.schedule import save_schedule
-from ..models.schedule import ScheduleModel
+from ...crud.schedule import save_schedule
+from ...models.schedule import ScheduleModel
 
 
 class ExcelParser(Parser):

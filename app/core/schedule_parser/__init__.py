@@ -44,7 +44,7 @@ async def start_parsing():
     from .downloader import Downloader
     from .excel_formatter import ExcelFormatter
     from .college_formatter import CollegeFormatter
-    from ..database.database import get_database
+    from app.database.database import get_database
 
     downloader = Downloader(
         path_to_error_log='downloader.log', base_file_dir='documents/')
