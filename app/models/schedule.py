@@ -58,5 +58,5 @@ class ScheduleUpdateModel(BaseModel):
 
 
 class GroupStatsModel(BaseModel):
-    groups: str
+    group: str
     received: int

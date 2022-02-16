@@ -139,7 +139,7 @@ async def get_schedule_update_by_group(conn: AsyncIOMotorClient, group: str) -> 
 
 async def update_group_stats(conn: AsyncIOMotorClient, group: str):
     update = await conn[DATABASE_NAME][SCHEDULE_GROUPS_STATS].update_one(
-        {"group": group},  {'$inc': {'received': 1}}, {'upsert': True})
+        {"group": group},  {'$inc': {'received': 1}}, upsert=True)
 
 
 async def get_groups_stats(conn: AsyncIOMotorClient) -> List[GroupStatsModel]:
