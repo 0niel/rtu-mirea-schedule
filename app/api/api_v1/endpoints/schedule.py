@@ -6,9 +6,9 @@ from starlette.status import HTTP_404_NOT_FOUND
 from app.core.schedule_utils import ScheduleUtils
 
 from app.database.database import AsyncIOMotorClient, get_database
-from app.models.schedule import GroupsListResponse, ScheduleModelResponse, ScheduleUpdateModel, TeacherSchedulesModelResponse, WeekModelResponse
+from app.models.schedule import GroupStatsModel, GroupsListResponse, ScheduleModelResponse, ScheduleUpdateModel, TeacherSchedulesModelResponse, WeekModelResponse
 from app.core.schedule_parser import start_parsing
-from app.crud.schedule import find_teacher, get_all_schedule_updates, get_full_schedule, get_groups, get_schedule_update_by_group
+from app.crud.schedule import find_teacher, get_all_schedule_updates, get_full_schedule, get_groups, get_groups_stats, get_schedule_update_by_group, update_group_stats
 from app.core.config import SECRET_REFRESH_KEY
 
 
@@ -47,7 +47,9 @@ async def full_schedule(
             status_code=HTTP_404_NOT_FOUND,
             detail=f"Schedule for group '{group}' not found",
         )
-
+    
+    await update_group_stats(db, group)
+    
     return schedule
 
 
@@ -137,3 +139,22 @@ async def group_schedule_update(
         )
 
     return updates
+
+
+@router.get(
+    '/schedule/groups_stats/',
+    response_description="Get statistics of requests to group schedules",
+    response_model=List[GroupStatsModel]
+)
+async def groups_stats(
+    db: AsyncIOMotorClient = Depends(get_database)
+):
+    stats = await get_groups_stats(db)
+
+    if not stats:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND,
+            detail=f"Stats not found",
+        )
+
+    return stats

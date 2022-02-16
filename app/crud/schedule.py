@@ -2,8 +2,8 @@ from calendar import weekday
 from turtle import update
 from typing import List
 
-from app.models.schedule import LessonModel, ScheduleModelResponse, ScheduleModel, ScheduleUpdateModel, TeacherLessonModel, TeacherSchedulesModelResponse
-from app.core.config import DATABASE_NAME, SCHEDULE_COLLECTION_NAME, SCHEDULE_UPDATES_COLLECTION
+from app.models.schedule import GroupStatsModel, LessonModel, ScheduleModelResponse, ScheduleModel, ScheduleUpdateModel, TeacherLessonModel, TeacherSchedulesModelResponse
+from app.core.config import DATABASE_NAME, SCHEDULE_COLLECTION_NAME, SCHEDULE_GROUPS_STATS, SCHEDULE_UPDATES_COLLECTION
 from app.database.database import AsyncIOMotorClient
 
 
@@ -135,3 +135,19 @@ async def get_schedule_update_by_group(conn: AsyncIOMotorClient, group: str) -> 
 
     if update:
         return ScheduleUpdateModel(**update)
+
+
+async def update_group_stats(conn: AsyncIOMotorClient, group: str):
+    update = await conn[DATABASE_NAME][SCHEDULE_GROUPS_STATS].update_one(
+        {"group": group},  {'$inc': {'received': 1}}, {'upsert': True})
+
+
+async def get_groups_stats(conn: AsyncIOMotorClient) -> List[GroupStatsModel]:
+    cursor = conn[DATABASE_NAME][SCHEDULE_GROUPS_STATS].find(
+        {}, {'_id': 0})
+
+    groups_stats = await cursor.to_list(None)
+    groups_stats = [GroupStatsModel(**stats) for stats in groups_stats]
+
+    if len(groups_stats) > 0:
+        return groups_stats

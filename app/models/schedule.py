@@ -55,3 +55,8 @@ class TeacherSchedulesModelResponse(BaseModel):
 class ScheduleUpdateModel(BaseModel):
     groups: List[str]
     updated_at: datetime.datetime
+
+
+class GroupStatsModel(BaseModel):
+    groups: str
+    received: int
