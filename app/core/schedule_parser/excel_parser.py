@@ -314,65 +314,67 @@ class ExcelParser(Parser):
             return week_range
 
         book = xlrd.open_workbook(self.__xlsx_path, on_demand=True)
-        sheet = book.sheet_by_index(0)
-        DOC_TYPE_EXAM = self.doc_type_list['session']
-        column_range = []
-
+        
         group_list = []
         column_range = []
 
-        # Индекс строки с названиями групп
-        group_name_row_num = self.__find_group_name_row(sheet)
-        group_name_row = sheet.row(group_name_row_num)
+        
+        for sheet in book.sheets():
+        
+            DOC_TYPE_EXAM = self.doc_type_list['session']
+            
+            # Индекс строки с названиями групп
+            group_name_row_num = self.__find_group_name_row(sheet)
+            group_name_row = sheet.row(group_name_row_num)
 
-        # Поиск названий групп
-        for group_cell in group_name_row:
-            group = str(group_cell.value)
-            group = re.search(r'([А-Яа-я]{4}-[0-9]{2}-[0-9]{2})', group)
+            # Поиск названий групп
+            for group_cell in group_name_row:
+                group = str(group_cell.value)
+                group = re.search(r'([А-Яа-я]{4}-[0-9]{2}-[0-9]{2})', group)
 
-            # Если название найдено, то получение расписания этой группы
-            if group:
-                group = group.group(0)
-                try:
-                    # обновляем column_range, если левее группы нет
-                    # разметки с неделями, используем старый
-                    if not group_list and self.__doc_type != DOC_TYPE_EXAM:
-                        column_range = get_semester_column_range(
-                            sheet, group_cell, group_name_row_num)
-                        for i in range(1, len(column_range) + 1):
-                            if len(column_range[i]) > 0:
-                                column_range[i] = fix_weeks_even_num(
-                                    column_range[i])
+                # Если название найдено, то получение расписания этой группы
+                if group:
+                    group = group.group(0)
+                    try:
+                        # обновляем column_range, если левее группы нет
+                        # разметки с неделями, используем старый
+                        if not group_list and self.__doc_type != DOC_TYPE_EXAM:
+                            column_range = get_semester_column_range(
+                                sheet, group_cell, group_name_row_num)
+                            for i in range(1, len(column_range) + 1):
+                                if len(column_range[i]) > 0:
+                                    column_range[i] = fix_weeks_even_num(
+                                        column_range[i])
 
-                    # TODO: парсинг сессии
-                    # elif not group_list and self.__doc_type == DOC_TYPE_EXAM:
-                    #     column_range = get_exam_column_range(
-                    #         sheet, group_cell, group_name_row_num)
+                        # TODO: парсинг сессии
+                        # elif not group_list and self.__doc_type == DOC_TYPE_EXAM:
+                        #     column_range = get_exam_column_range(
+                        #         sheet, group_cell, group_name_row_num)
 
-                    if group not in group_list:
-                        group_list.append(group)
-                        if self.__doc_type != DOC_TYPE_EXAM:
-                            self._logger.info(f'Parsing {group}')
+                        if group not in group_list:
+                            group_list.append(group)
+                            if self.__doc_type != DOC_TYPE_EXAM:
+                                self._logger.info(f'Parsing {group}')
 
-                            one_time_table = self.__read_group_for_semester(
-                                sheet, group_name_row.index(group_cell),
-                                group_name_row_num, column_range
-                            )
+                                one_time_table = self.__read_group_for_semester(
+                                    sheet, group_name_row.index(group_cell),
+                                    group_name_row_num, column_range
+                                )
 
-                            save_schedule(self._db_conn, one_time_table['group'], ScheduleModel(
-                                **one_time_table['schedule']))
+                                save_schedule(self._db_conn, one_time_table['group'], ScheduleModel(
+                                    **one_time_table['schedule']))
 
-                        # TODO: реализовать парсинг сессии
-                        # else:
-                        #     # По номеру столбца
-                        #     one_time_table = self.__read_group_for_session(
-                        #         sheet, group_name_row.index(group_cell), group_name_row_num, column_range)
+                            # TODO: реализовать парсинг сессии
+                            # else:
+                            #     # По номеру столбца
+                            #     one_time_table = self.__read_group_for_session(
+                            #         sheet, group_name_row.index(group_cell), group_name_row_num, column_range)
 
-                except Exception as ex:
-                    self._logger.error(
-                        'Error when parsing {}, file: {}. Message: {}'.format(
-                            group, self.__xlsx_path, str(ex)
-                        ))
+                    except Exception as ex:
+                        self._logger.error(
+                            'Error when parsing {}, file: {}. Message: {}'.format(
+                                group, self.__xlsx_path, str(ex)
+                            ))
 
         book.release_resources()
         del book

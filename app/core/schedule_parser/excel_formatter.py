@@ -415,4 +415,14 @@ class ExcelFormatter(Formatter):
 
     def get_types(self, cell: str) -> list:
         splitted_types = re.split(r' {2,}|\n|,', cell)
-        return [lesson_type.strip() for lesson_type in splitted_types if lesson_type != '']
+        lesson_types = [lesson_type.strip() for lesson_type in splitted_types if lesson_type != '']
+        for i in range(len(lesson_types)):
+            if lesson_types[i] == 'Л':
+                lesson_types[i] = 'лек'
+            elif lesson_types[i] == 'П':
+                lesson_types[i] = 'пр'
+            elif lesson_types[i] == 'ЛБ':
+                lesson_types[i] = 'лаб'
+            elif lesson_types[i] == 'СР':
+                lesson_types[i] = 'с/р'
+        return lesson_types
