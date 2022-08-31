@@ -134,46 +134,49 @@ class ExcelParser(Parser):
         for day_num in cell_range:
             one_day = {}
             for lesson_range in cell_range[day_num]:
-                # приведение к строке нужно из-за того, что
-                # bson формат не умеет кушать нестроковые ключи
-                day_num = str(day_num)
-                lesson_num = lesson_range[0]
-                time_ = lesson_range[1]
-                week_num = lesson_range[2]
-                string_index = lesson_range[3]
+                try:
+                    # приведение к строке нужно из-за того, что
+                    # bson формат не умеет кушать нестроковые ключи
+                    day_num = str(day_num)
+                    lesson_num = int(lesson_range[0])
+                    time_ = lesson_range[1]
+                    week_num = lesson_range[2]
+                    string_index = lesson_range[3]
 
-                # Перебор одного дня (1-6 пара)
-                if 'lessons' not in one_day:
-                    one_day['lessons'] = []
+                    # Перебор одного дня (1-6 пара)
+                    if 'lessons' not in one_day:
+                        one_day['lessons'] = []
 
-                # Получение данных об одной паре
-                lesson_names = sheet.cell(
-                    string_index, discipline_col_num).value
-                lesson_types = sheet.cell(
-                    string_index, discipline_col_num + 1).value
-                lesson_teachers = sheet.cell(
-                    string_index, discipline_col_num + 2).value
-                lesson_rooms = sheet.cell(
-                    string_index, discipline_col_num + 3).value
+                    # Получение данных об одной паре
+                    lesson_names = sheet.cell(
+                        string_index, discipline_col_num).value
+                    lesson_types = sheet.cell(
+                        string_index, discipline_col_num + 1).value
+                    lesson_teachers = sheet.cell(
+                        string_index, discipline_col_num + 2).value
+                    lesson_rooms = sheet.cell(
+                        string_index, discipline_col_num + 3).value
 
-                if type(lesson_rooms) == float:
-                    lesson_rooms = str(int(lesson_rooms))
-                elif type(lesson_rooms) == int:
-                    lesson_rooms = str(lesson_rooms)
+                    if type(lesson_rooms) == float:
+                        lesson_rooms = str(int(lesson_rooms))
+                    elif type(lesson_rooms) == int:
+                        lesson_rooms = str(lesson_rooms)
 
-                ready_lessons = self.__get_lessons(lesson_names, lesson_types, lesson_teachers, lesson_rooms,
-                                                   time_, week_num)
+                    ready_lessons = self.__get_lessons(lesson_names, lesson_types, lesson_teachers, lesson_rooms,
+                                                    time_, week_num)
 
-                # инициализация списка
-                if len(one_day['lessons']) < lesson_num:
-                    one_day['lessons'].append([])
+                    # инициализация списка
+                    if len(one_day['lessons']) < lesson_num:
+                        one_day['lessons'].append([])
 
-                if len(ready_lessons) != 0:
-                    for ready_lesson in ready_lessons:
-                        one_day['lessons'][lesson_num - 1].append(ready_lesson)
+                    if len(ready_lessons) != 0:
+                        for ready_lesson in ready_lessons:
+                            one_day['lessons'][lesson_num - 1].append(ready_lesson)
 
-                # Объединение расписания
-                one_group[day_num] = one_day
+                    # Объединение расписания
+                    one_group[day_num] = one_day
+                except ValueError:
+                    continue
 
         return {'group': group_name, 'schedule': one_group}
 
@@ -268,13 +271,22 @@ class ExcelParser(Parser):
                     lesson_num, group_name_row.index(group_name_cell) - 4)
                 if lesson_num_col.value != '':
                     lesson_num_val = lesson_num_col.value
-                    # является ли значение числом
-                    if isinstance(lesson_num_val, float):
-                        lesson_num_val = int(lesson_num_val)
+                    try:
+                        # если это число в строковом представлении
+                        if isinstance(lesson_num_val, str):
+                            lesson_num_val = int(lesson_num_val)
+                            
+                        # является ли значение числом
+                        if isinstance(lesson_num_val, float):
+                            lesson_num_val = int(lesson_num_val)
+                            
                         if lesson_num_val > lesson_count:
                             lesson_count = lesson_num_val
                         elif lesson_num_val == 7 and lesson_count == 7 or lesson_num_val == 8 and lesson_count == 8:
                             lesson_count += 1
+                            
+                    except ValueError:
+                        continue
 
                 # получаем время начала пары
                 lesson_time_col = xlsx_sheet.cell(
@@ -323,9 +335,12 @@ class ExcelParser(Parser):
         
             DOC_TYPE_EXAM = self.doc_type_list['session']
             
-            # Индекс строки с названиями групп
-            group_name_row_num = self.__find_group_name_row(sheet)
-            group_name_row = sheet.row(group_name_row_num)
+            try:
+                # Индекс строки с названиями групп
+                group_name_row_num = self.__find_group_name_row(sheet)
+                group_name_row = sheet.row(group_name_row_num)
+            except IndexError:
+                continue
 
             # Поиск названий групп
             for group_cell in group_name_row:

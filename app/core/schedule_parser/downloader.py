@@ -256,17 +256,17 @@ class Downloader:
             chrome_options.add_argument('--disable-dev-shm-usage')
             driver = webdriver.Chrome(chrome_options=chrome_options)
             driver.get(self._url)
-            page_sources.append(driver.find_element_by_css_selector(
+            page_sources.append(driver.find_element("css selector", 
                 '#tab-content > li.uk-active').get_attribute('innerHTML'))
-            driver.find_element_by_css_selector(
+            driver.find_element("css selector", 
                 '#tabs > ul.uk-tab > li:nth-child(2) > a').click()
-            page_sources.append(driver.find_element_by_css_selector(
+            page_sources.append(driver.find_element("css selector", 
                 '#tab-content > li.uk-active').get_attribute('innerHTML'))
 
             # переключение на колледж
-            driver.find_element_by_css_selector(
+            driver.find_element("css selector", 
                 '#tabs > ul.uk-tab > li:nth-child(4) > a').click()
-            college_page_source = driver.find_element_by_css_selector(
+            college_page_source = driver.find_element("css selector", 
                 '#tab-content > li.uk-active').get_attribute('innerHTML')
 
             driver.quit()

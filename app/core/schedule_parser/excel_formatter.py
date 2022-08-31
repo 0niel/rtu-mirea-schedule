@@ -194,13 +194,15 @@ class ExcelFormatter(Formatter):
         return names
 
     def get_rooms(self, rooms: str):
-        for pattern in self.notes_dict:
-            regex_result = re.findall(pattern, rooms, flags=re.A)
-            if regex_result:
-                rooms = rooms.replace('  ', '').replace(
-                    '*', '').replace('\n', '')
-                rooms = re.sub(
-                    regex_result[0], self.notes_dict[regex_result[0]] + " ", rooms, flags=re.A)
+        re_rooms = r'\(.*\)'
+        if re.search(re_rooms, rooms) is None:          
+            for pattern in self.notes_dict:
+                regex_result = re.findall(pattern, rooms, flags=re.A)
+                if regex_result:
+                    rooms = rooms.replace('  ', '').replace(
+                        '*', '').replace('\n', '')
+                    rooms = re.sub(
+                        regex_result[0], self.notes_dict[regex_result[0]] + " ", rooms, flags=re.A)
 
         splitted_rooms = re.split(r' {2,}|\n', rooms)
         return [room for room in splitted_rooms if room != '']
