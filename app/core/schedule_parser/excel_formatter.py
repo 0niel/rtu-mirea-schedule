@@ -183,7 +183,7 @@ class ExcelFormatter(Formatter):
                     # значит это просто одиночный предмет
                     result.append(lessons)
 
-        return result
+        return [lesson for lesson in result if lesson.strip() != ""]
 
     def __fix_typos(self, names: str) -> str:
         """Исправление ошибок и опечаток в документе"""
