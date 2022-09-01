@@ -191,6 +191,7 @@ class ExcelFormatter(Formatter):
         names = re.sub(r'^\s*Военная\s*$', 'Военная подготовка', names, flags=re.MULTILINE)
         names = re.sub(r'^\s*подготовка\s*$', 'Военная подготовка', names, flags=re.MULTILINE)
         names = re.sub(r'^\s*1\s*п\/г,\s*2\s*п\/г\s*$', '', names, flags=re.MULTILINE)
+        names = re.sub(r'^\s*2\s*п\/г\s*,\s*1\s*п\/г$', '', names, flags=re.MULTILINE)    
 
         return names
 
