@@ -49,8 +49,9 @@ class ExcelParser(Parser):
             # получаем значения ячеек в данной строке
             row_values = sheet.row_values(row_index, end_colx=50)
             for cell in row_values:
-                gr = re.search(r"([А-Яа-я]{4}-[0-9]{2}-[0-9]{2})", str(cell), re.I)
-                if gr:
+                if gr := re.search(
+                    r"([А-Яа-я]{4}-[0-9]{2}-[0-9]{2})", str(cell), re.I
+                ):
                     group_name_row_num = row_index
                     return group_name_row_num
 
@@ -72,7 +73,7 @@ class ExcelParser(Parser):
         lesson_rooms = self.__formatter.get_rooms(rooms)
 
         # стоит ли предмет на чётной неделе или нет
-        is_even_number = True if week_num == 2 else False
+        is_even_number = week_num == 2
 
         lesson_weeks = self.__formatter.get_weeks(names, is_even_number, self.max_weeks)
 
@@ -97,14 +98,13 @@ class ExcelParser(Parser):
                 time_start = times["start"]
                 time_end = times["end"]
 
-                if i - 1 >= 0:
-                    if (
-                        lesson_names[i - 1]["name"] == lesson_names[i]["name"]
-                        and lesson_weeks[i - 1] == lesson_weeks[i]
-                    ):
-                        lessons[i - 1]["teachers"] = lesson_teachers
-                        lessons[i - 1]["rooms"] = lesson_rooms
-                        continue
+                if i >= 1 and (
+                    lesson_names[i - 1]["name"] == lesson_names[i]["name"]
+                    and lesson_weeks[i - 1] == lesson_weeks[i]
+                ):
+                    lessons[i - 1]["teachers"] = lesson_teachers
+                    lessons[i - 1]["rooms"] = lesson_rooms
+                    continue
 
                 one_lesson = {
                     "name": name,
@@ -135,7 +135,7 @@ class ExcelParser(Parser):
         if group_name is None:
             raise ValueError("Group name is none. Cell value: {}", format(group))
 
-        group_name = group_name.group(0)
+        group_name = group_name[0]
 
         # Инициализация словаря
         one_group = {}
@@ -234,8 +234,8 @@ class ExcelParser(Parser):
             return day_range_list
 
         def get_semester_column_range(
-            xlsx_sheet, group_name_cell, group_name_row_index
-        ):
+                xlsx_sheet, group_name_cell, group_name_row_index
+            ):
             """Получение диапазона ячеек недели для типа расписания = семестр
 
             Args:
@@ -351,11 +351,7 @@ class ExcelParser(Parser):
                     elif lesson_week_num.value == "II":
                         lesson_week_num_val = 2
                 else:
-                    if lesson_week_num_val == 1:
-                        lesson_week_num_val = 2
-                    else:
-                        lesson_week_num_val = 1
-
+                    lesson_week_num_val = 2 if lesson_week_num_val == 1 else 1
                 lesson_string_index = lesson_num
 
                 if re.findall(r"\d+:\d+", str(lesson_time_start_val), flags=re.A):
@@ -391,7 +387,7 @@ class ExcelParser(Parser):
 
                 # Если название найдено, то получение расписания этой группы
                 if group:
-                    group = group.group(0)
+                    group = group[0]
                     try:
                         # обновляем column_range, если левее группы нет
                         # разметки с неделями, используем старый

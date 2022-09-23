@@ -125,9 +125,7 @@ class Parser:
             int: порядковый номер пары или 0, если не существует пары
             с таким временем начала
         """
-        if time_str in self.time_dict:
-            return self.time_dict[time_str]
-        return 0
+        return self.time_dict[time_str] if time_str in self.time_dict else 0
 
     def __get_doc_type_code(self, path_to_file) -> int:
         """Получение типа документа по его пути

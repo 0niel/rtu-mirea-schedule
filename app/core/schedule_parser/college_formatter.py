@@ -4,13 +4,12 @@ from .formatter import Formatter
 
 class CollegeFormatter(Formatter):
     def get_rooms(self, rooms: str):
-        if len(rooms) > 1:
-            rooms = rooms.split('/')
-            for i in range(len(rooms)):
-                rooms[i] = rooms[i].strip()
-            return rooms
-        else:
+        if len(rooms) <= 1:
             return []
+        rooms = rooms.split('/')
+        for i in range(len(rooms)):
+            rooms[i] = rooms[i].strip()
+        return rooms
 
     def get_teachers(self, teachers_names: str):
         teachers = re.findall(
@@ -28,7 +27,7 @@ class CollegeFormatter(Formatter):
                 lessons_weeks_match = re.findall(r'(?:\d\s*н[.\s+]*)', lesson)
                 if len(lessons_weeks_match) > 0:
                     for week_substr in lessons_weeks_match:
-                        week = int(re.search(r'\d', week_substr).group(0))
+                        week = int(re.search(r'\d', week_substr)[0])
                         if week == 1:
                             result.append(
                                 [x for x in range(1, max_weeks + 1) if x % 2 == 1])
@@ -36,16 +35,21 @@ class CollegeFormatter(Formatter):
                             result.append(
                                 [x for x in range(1, max_weeks + 1) if x % 2 == 0])
                 else:
-                    result.append([x for x in range(1, max_weeks + 1)])
+                    result.append(list(range(1, max_weeks + 1)))
         return result
 
     def __split_lessons(self, lesson):
-        lessons_weeks_match = [x for x in re.finditer(
-            r'(?:\d\s*н[.\s+]*)', lesson)]
+        lessons_weeks_match = list(re.finditer(r'(?:\d\s*н[.\s+]*)', lesson))
+
         if len(lessons_weeks_match) == 2:
-            result = []
-            result.append(lesson[lessons_weeks_match[0].span()[
-                          0]:lessons_weeks_match[1].span()[0]].strip())
+            result = [
+                lesson[
+                    lessons_weeks_match[0]
+                    .span()[0] : lessons_weeks_match[1]
+                    .span()[0]
+                ].strip()
+            ]
+
             result.append(lesson[lessons_weeks_match[1].span()[0]:].strip())
             return result
         return [lesson]
@@ -60,7 +64,7 @@ class CollegeFormatter(Formatter):
             remove_trash_end = r'([-,_.\+;]+$)'
             # удаление имён учителей в формате: Фамилия И.О.
             remove_teachers = \
-                r'(?:[а-яА-Я]+\s{1,3}[а-яА-Я]\.\s?[а-яА-Я](?:\.|\s|\b|$))'
+                    r'(?:[а-яА-Я]+\s{1,3}[а-яА-Я]\.\s?[а-яА-Я](?:\.|\s|\b|$))'
 
             lesson = re.sub(remove_weeks, "", lesson)
             lesson = re.sub(remove_teachers, "", lesson)
@@ -77,8 +81,7 @@ class CollegeFormatter(Formatter):
             result[i] = remove_other(result[i])
             lesson_preffix_regexp = r'(?:(?:[а-яА-Я])+(?:\.\d+)+)'
             lesson_preffix = re.search(lesson_preffix_regexp, result[i])
-            lesson_preffix = lesson_preffix.group(
-                0) + ' ' if lesson_preffix is not None else ''
+            lesson_preffix = f'{lesson_preffix[0]} ' if lesson_preffix is not None else ''
             result[i] = result[i].replace(lesson_preffix, '').strip()
             words = result[i].split(' ')
 

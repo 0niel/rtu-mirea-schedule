@@ -48,9 +48,7 @@ class CollegeParser(Parser):
             for cell in row_values:
                 cell = str(cell).replace(' ', '')
 
-                gr = re.search(
-                    r'([А-Яа-я]{4}-[0-9]{2}-[0-9]{2})', str(cell), re.I)
-                if gr:
+                if gr := re.search(r'([А-Яа-я]{4}-[0-9]{2}-[0-9]{2})', cell, re.I):
                     group_name_row_num = row_index
                     return group_name_row_num
 
@@ -102,9 +100,7 @@ class CollegeParser(Parser):
     def __get_group_name(self, subst):
         group_test = subst.replace(' ', '')
         group_name = re.search(r'([А-Яа-я]{4}-[0-9]{2}-[0-9]{2})', group_test)
-        if group_name is not None:
-            return group_name.group(0)
-        return None
+        return group_name[0] if group_name is not None else None
 
     def __read_group_for_semester(self, sheet, discipline_col_num,
                                   group_name_row_num, cell_range):
@@ -229,7 +225,7 @@ class CollegeParser(Parser):
         # Перебор столбца с номерами пар и вычисление на
         # основании количества пар в день диапазона выбора ячеек
         day_num_val, lesson_num_val, lesson_time_start_val, \
-            lesson_time_end_val = 0, 0, 0, 0,
+                lesson_time_end_val = 0, 0, 0, 0,
         # кол-во строк в столбце группы
         row_s = len(xlsx_sheet.col(group_name_row.index(group_name_cell)))
         if row_s >= 200:
@@ -248,14 +244,18 @@ class CollegeParser(Parser):
             # получаем время начала и окончания пары
             lesson_time_col = xlsx_sheet.cell(
                 lesson_num, group_name_row.index(group_name_cell) - 1)
-            if lesson_time_col.value != '':
-                if re.search(r'(\d\d\.\d\d)[\s-]*(\d\d\.\d\d)',
-                             str(lesson_time_col.value)) is not None:
-                    lesson_time_value = str(lesson_time_col.value).split('-')
-                    lesson_time_start_val = \
+            if (
+                lesson_time_col.value != ''
+                and re.search(
+                    r'(\d\d\.\d\d)[\s-]*(\d\d\.\d\d)', str(lesson_time_col.value)
+                )
+                is not None
+            ):
+                lesson_time_value = str(lesson_time_col.value).split('-')
+                lesson_time_start_val = \
                         lesson_time_value[0].strip().replace('.', ':')
-                    lesson_time_end_val = lesson_time_value[1].strip().replace(
-                        '.', ':')
+                lesson_time_end_val = lesson_time_value[1].strip().replace(
+                    '.', ':')
 
             # получаем номер пары
             if lesson_time_start_val != 0:
@@ -291,10 +291,7 @@ class CollegeParser(Parser):
 
         # Поиск названий групп
         for group_cell in group_name_row:
-            group = self.__get_group_name(str(group_cell.value))
-
-            # Если название найдено, то получение расписания этой группы
-            if group:
+            if group := self.__get_group_name(str(group_cell.value)):
                 try:
                     # обновляем column_range, если левее группы нет
                     # разметки с неделями, используем старый
@@ -323,9 +320,9 @@ class CollegeParser(Parser):
 
                 except Exception as ex:
                     self._logger.error(
-                        'Error when parsing {}, file: {}. Message: {}'.format(
-                            group, self.__xlsx_path, str(ex)
-                        ))
+                        f'Error when parsing {group}, file: {self.__xlsx_path}. Message: {str(ex)}'
+                    )
+
 
         book.release_resources()
         del book
