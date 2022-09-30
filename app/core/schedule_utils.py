@@ -38,8 +38,7 @@ class ScheduleUtils:
 
     @staticmethod
     def now_date() -> datetime.datetime:
-        moscow_time = datetime.datetime.now(pytz.timezone('Europe/Moscow'))
-        return moscow_time
+        return datetime.datetime.now(pytz.timezone('Europe/Moscow'))
 
     @staticmethod
     def get_first_semester() -> datetime.datetime:

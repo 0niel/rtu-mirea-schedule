@@ -67,10 +67,7 @@ async def groups_list(db: AsyncIOMotorClient = Depends(get_database)):
             detail="Groups not found",
         )
 
-    groups_response = GroupsListResponse(
-        groups=groups, count=len(groups))
-
-    return groups_response
+    return GroupsListResponse(groups=groups, count=len(groups))
 
 
 @router.get(
@@ -134,9 +131,9 @@ async def group_schedule_update(
 
     if not updates:
         raise HTTPException(
-            status_code=HTTP_404_NOT_FOUND,
-            detail=f"Schedule updates not found",
+            status_code=HTTP_404_NOT_FOUND, detail="Schedule updates not found"
         )
+
 
     return updates
 
@@ -152,9 +149,6 @@ async def groups_stats(
     stats = await get_groups_stats(db)
 
     if not stats:
-        raise HTTPException(
-            status_code=HTTP_404_NOT_FOUND,
-            detail=f"Stats not found",
-        )
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Stats not found")
 
     return stats

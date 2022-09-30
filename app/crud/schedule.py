@@ -47,9 +47,7 @@ async def get_groups(conn: AsyncIOMotorClient) -> List[str]:
     cursor = conn[DATABASE_NAME][SCHEDULE_COLLECTION_NAME].find(
         {}, {'group': 1, '_id': 0})
     groups = await cursor.to_list(None)
-    groups = [group['group'] for group in groups]
-
-    if len(groups) > 0:
+    if groups := [group['group'] for group in groups]:
         return groups
 
 
@@ -99,7 +97,7 @@ async def find_teacher(conn: AsyncIOMotorClient, teacher_name: str) -> TeacherSc
 
     teacher_schedule = TeacherSchedulesModelResponse(schedules=result)
 
-    if len(result) > 0:
+    if result:
         return teacher_schedule
 
 
@@ -107,8 +105,10 @@ async def update_schedule_updates(conn: AsyncIOMotorClient, updates: List[Schedu
     for update in updates:
         groups_list = []
         request_to_db = {'$or': groups_list}
-        for group in update.groups:
-            groups_list.append({"groups": {'$elemMatch': {'$regex': group}}})
+        groups_list.extend(
+            {"groups": {'$elemMatch': {'$regex': group}}}
+            for group in update.groups
+        )
 
         update_in_db = await conn[DATABASE_NAME][SCHEDULE_UPDATES_COLLECTION].find_one(request_to_db)
 
@@ -123,9 +123,7 @@ async def get_all_schedule_updates(conn: AsyncIOMotorClient) -> List[ScheduleUpd
         {}, {'_id': 0})
 
     updates = await cursor.to_list(None)
-    updates = [ScheduleUpdateModel(**update) for update in updates]
-
-    if len(updates) > 0:
+    if updates := [ScheduleUpdateModel(**update) for update in updates]:
         return updates
 
 
@@ -147,7 +145,5 @@ async def get_groups_stats(conn: AsyncIOMotorClient) -> List[GroupStatsModel]:
         {}, {'_id': 0})
 
     groups_stats = await cursor.to_list(None)
-    groups_stats = [GroupStatsModel(**stats) for stats in groups_stats]
-
-    if len(groups_stats) > 0:
+    if groups_stats := [GroupStatsModel(**stats) for stats in groups_stats]:
         return groups_stats

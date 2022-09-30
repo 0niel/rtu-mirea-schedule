@@ -45,8 +45,7 @@ class ExcelFormatter(Formatter):
         # удаляем мусор и возвращаем готовый список.
         for regexp in expressions:
             found = re.finditer(regexp, lesson)
-            found_items = [x for x in found]
-            if len(found_items) > 0:
+            if found_items := list(found):
                 for week_types in found_items:
                     lesson = lesson.replace(week_types.group(), '')
 
@@ -56,7 +55,7 @@ class ExcelFormatter(Formatter):
                 lesson = lesson.strip()
                 list_lessons = lesson.split(';')
 
-                group_substr = ' груп.' if regexp == regexp_2 or regexp == regexp_3 else ''
+                group_substr = ' груп.' if regexp in [regexp_2, regexp_3] else ''
 
                 if len(list_lessons) == 2 and len(found_items) == 4:
                     for i in range(len(found_items)):
@@ -71,11 +70,9 @@ class ExcelFormatter(Formatter):
                         group_2 = group_2.strip()
 
                         if regexp == regexp_2:
-                            result.append(
-                                group_2 + ' ' + list_lessons[index] + ' ' + group_1 + group_substr)
+                            result.append(f'{group_2} {list_lessons[index]} {group_1}{group_substr}')
                         else:
-                            result.append(
-                                group_1 + ' ' + list_lessons[index] + ' ' + group_2 + group_substr)
+                            result.append(f'{group_1} {list_lessons[index]} {group_2}{group_substr}')
 
                 else:
                     for week_types in found_items:
@@ -86,11 +83,9 @@ class ExcelFormatter(Formatter):
                         group_2 = group_2.strip()
 
                         if regexp == regexp_2:
-                            result.append(group_2 + ' ' + lesson +
-                                          ' ' + group_1 + group_substr)
+                            result.append(f'{group_2} {lesson} {group_1}{group_substr}')
                         else:
-                            result.append(group_1 + ' ' + lesson +
-                                          ' ' + group_2 + group_substr)
+                            result.append(f'{group_1} {lesson} {group_2}{group_substr}')
 
         return result
 
@@ -113,17 +108,13 @@ class ExcelFormatter(Formatter):
         # несколько предметов в одной ячейке и разделены
         # с помощью переноса строки.
         if '\n' in lessons:
-            for one_lesson in lessons.split('\n'):
-                result.append(one_lesson)
-        # несколько предметов разделены большим количество пробелов.
+            result.extend(iter(lessons.split('\n')))
         elif len(re.split(r" {3,}", lessons)) > 1:
-            for one_lesson in re.split(r"\s\s\s+", lessons):
-                result.append(one_lesson)
-
+            result.extend(iter(re.split(r"\s\s\s+", lessons)))
         # ниже мы используем __format_subgroups_and_type, чтобы разделить
         # предметы по типу, если он указан, иоли по подгруппам, если они
         # указаны
-        if len(result) > 0:
+        if result:
             for lesson in sorted(result):
                 formatted_lessons = self.__format_subgroups_and_type(lesson)
                 if len(formatted_lessons) > 0:
@@ -135,11 +126,7 @@ class ExcelFormatter(Formatter):
             if len(formatted_lessons) > 0:
                 result += formatted_lessons
 
-        # если length == 0, то предыдущие методы форматирования не сработали,
-        # а это скорее всего значит, что у нас один предмет, либо несколько
-        # предметов записаны в одну строку
         if len(result) == 0:
-            # пробуем разделить по ';'
             if ';' in lessons:
                 result += lessons.split(';')
             else:
@@ -151,8 +138,8 @@ class ExcelFormatter(Formatter):
                 #
                 # переноса строк нет, но делить на два предмета как-то надо.
                 oneline_lessons_regexp = r'(?:\d+[-,\s.]*)+\s*(?:(?:нед|н)|\W)[.\s+]*\(?(?:кроме|кр)?(?![.\s,\-\d]*(?:подгруппа|подгруп|подгр|п\/г|группа|гр))[.\s]*'
-                found = [x for x in re.finditer(
-                    oneline_lessons_regexp, lessons)]
+                found = list(re.finditer(oneline_lessons_regexp, lessons))
+
                 # Разработка ПАОИиАС 2,6,10,14 н.+4,8,12,16н.
                 length = len(found)
                 if length > 1:
@@ -161,24 +148,21 @@ class ExcelFormatter(Formatter):
                         current_found_pos = found[i].span()
                         is_last_elem = i + 1 > length - 1
                         # если конец предыдущей позиции не совпадает с началом текущей
-                        if prev_found_pos[1] != current_found_pos[0]:
-                            if is_last_elem is False:
-                                result.append(
-                                    lessons[prev_found_pos[0]:current_found_pos[0]])
-                            else:
-                                result.append(
-                                    lessons[prev_found_pos[0]:current_found_pos[0]])
-                                result.append(lessons[current_found_pos[0]:])
-                        else:
-                            if is_last_elem is False:
-                                result.append(
-                                    lessons[prev_found_pos[0]:found[i + 1].span()[0]])
-                            else:
+                        if prev_found_pos[1] == current_found_pos[0]:
+                            if is_last_elem:
                                 if length == 2:
                                     result.append(lessons)
                                 else:
                                     result.append(lessons[prev_found_pos[0]:])
 
+                            else:
+                                result.append(
+                                    lessons[prev_found_pos[0]:found[i + 1].span()[0]])
+                        else:
+                            result.append(
+                                lessons[prev_found_pos[0]:current_found_pos[0]])
+                            if is_last_elem:
+                                result.append(lessons[current_found_pos[0]:])
                 else:
                     # значит это просто одиночный предмет
                     result.append(lessons)
@@ -198,20 +182,24 @@ class ExcelFormatter(Formatter):
 
     def get_rooms(self, rooms: str):
         re_rooms = r'\(.*\)'
-        if re.search(re_rooms, rooms) is None:          
+        if re.search(re_rooms, rooms) is None:      
             for pattern in self.notes_dict:
-                regex_result = re.findall(pattern, rooms, flags=re.A)
-                if regex_result:
+                if regex_result := re.findall(pattern, rooms, flags=re.A):
                     rooms = rooms.replace('  ', '').replace(
                         '*', '').replace('\n', '')
                     rooms = re.sub(
-                        regex_result[0], self.notes_dict[regex_result[0]] + " ", rooms, flags=re.A)
+                        regex_result[0],
+                        f"{self.notes_dict[regex_result[0]]} ",
+                        rooms,
+                        flags=re.A,
+                    )
+
 
         splitted_rooms = re.split(r' {2,}|\n', rooms)
         return [room for room in splitted_rooms if room != '']
 
     def get_teachers(self, teachers_names: str):
-        teachers_names = str(teachers_names)
+        teachers_names = teachers_names
         splitted_teachers = re.split(r' {2,}|\n|,', teachers_names)
         return [teacher.strip() for teacher in splitted_teachers if teacher != '']
 
@@ -317,21 +305,25 @@ class ExcelFormatter(Formatter):
             lesson = lesson.lower()
 
             include_weeks = \
-                r'(\b(\d+[-, ]*)+)((н|нед)?(?![.\s,\-\d]*(?:подгруппа|подгруп|подгр|п\/г|группа|гр))(\.|\b))'
+                    r'(\b(\d+[-, ]*)+)((н|нед)?(?![.\s,\-\d]*(?:подгруппа|подгруп|подгр|п\/г|группа|гр))(\.|\b))'
             exclude_weeks = r'(\b(кр|кроме)(\.|\b)\s*)' + include_weeks
 
             exclude_weeks_substr = re.search(exclude_weeks, lesson)
             # 4-я группа в данном контексте - это только номера недель.
             # см. https://regex101.com/
-            exclude_weeks_substr = '' if exclude_weeks_substr is None \
-                else exclude_weeks_substr.group(4)
+            exclude_weeks_substr = (
+                '' if exclude_weeks_substr is None else exclude_weeks_substr[4]
+            )
+
 
             # необходимо исключить недели исключения из строки, чтобы недели
             # включения не пересекались с ними при вызове метода поиска
             lesson = re.sub(exclude_weeks, "", lesson)
             incldue_weeks_substr = re.search(include_weeks, lesson)
-            incldue_weeks_substr = '' if incldue_weeks_substr is None else incldue_weeks_substr.group(
-                1)
+            incldue_weeks_substr = (
+                '' if incldue_weeks_substr is None else incldue_weeks_substr[1]
+            )
+
 
             # удаляем лишние пробелы слева и справа
             incldue_weeks_substr = incldue_weeks_substr.strip()
@@ -384,7 +376,7 @@ class ExcelFormatter(Formatter):
             remove_exclude = r'\W*(?:кр|кроме)(?:\.|\b)'
             # удаления слов включения недель, при этом игнорирование подгрупп
             remove_weeks = numbers + \
-                r'\s*(?:(?:нед|н)|\W)(?![.\s\d,-]*(?:подгруппа|подгруп|подгр|п\/г|группа|гр))[.\s]*'
+                    r'\s*(?:(?:нед|н)|\W)(?![.\s\d,-]*(?:подгруппа|подгруп|подгр|п\/г|группа|гр))[.\s]*'
             # удаление типа проводимого предмета
             remove_types = r'(?:\b(лк|пр|лек|лаб)\b)?'
             # удаление ненужных символов в начале строки

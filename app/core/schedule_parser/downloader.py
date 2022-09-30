@@ -71,7 +71,7 @@ class Downloader:
         # todo: вынести в отдельный метод
         # if "зима" in path or "лето" in path:
         #     return False
-        
+
          # "_LATEST" будет означать, что расписание актуально
          # и заново парсить группы из этого документа не нужно
         actual_file_name = '_LATEST'
@@ -158,18 +158,20 @@ class Downloader:
                         # где начинаются и кончаются документы с
                         # расписанием для семестра.
                         for j in range(i + 1, len(all_divs)):
-                            # 'uk-h3' - класс заголовка расписания
-                            if 'uk-h3' not in str(all_divs[j]) \
-                                    and all_divs[j].text != block_title:
-                                # поиск в HTML Всех классов с разметой Html
-                                document = all_divs[j].find(
-                                    'a', {"class": "uk-link-toggle"})
-                                if document is not None:
-                                    if document['href'] not in documents_links:
-                                        documents_links.append(
-                                            document['href'])
-                            else:
+                            if (
+                                'uk-h3' in str(all_divs[j])
+                                or all_divs[j].text == block_title
+                            ):
                                 break
+                            # поиск в HTML Всех классов с разметой Html
+                            document = all_divs[j].find(
+                                'a', {"class": "uk-link-toggle"})
+                            if (
+                                document is not None
+                                and document['href'] not in documents_links
+                            ):
+                                documents_links.append(
+                                    document['href'])
         return documents_links
 
     def __download_college(self, html):
@@ -185,10 +187,7 @@ class Downloader:
                     self._base_file_dir, subdir, file_name)
                 os.makedirs(os.path.join(
                     self._base_file_dir, subdir), exist_ok=True)
-                result = self.__download_schedule(
-                    url_file, path_to_file)
-
-                if result:
+                if result := self.__download_schedule(url_file, path_to_file):
                     self._logger.info(
                         'Download college: {0}'.format(path_to_file))
                 else:
@@ -196,7 +195,7 @@ class Downloader:
                         'Skp college: {0}'.format(path_to_file))
 
             except Exception as ex:
-                self._logger.error(f'[{url_file}] message:' + str(ex))
+                self._logger.error(f'[{url_file}] message:{str(ex)}')
 
     def download_file(self, url: str, file_path='', attempts=2):
         """Загружает содержимое URL-адреса в файл
@@ -271,7 +270,7 @@ class Downloader:
 
             driver.quit()
         except Exception as ex:
-            self._logger.error('Chromium start error. Message: ' + str(ex))
+            self._logger.error(f'Chromium start error. Message: {str(ex)}')
 
         for html in page_sources:
             # Объект BS с параметром парсера
@@ -298,37 +297,36 @@ class Downloader:
                     # название файла и его расширение
                     (file_root, file_ext) = os.path.splitext(file_name)
                     if file_ext.replace('.', '') in self._file_types \
-                            and "заоч" not in file_root:
+                                and "заоч" not in file_root:
                         subdir = self.__get_dir(file_name)
                         path_to_file = os.path.join(
                             self._base_file_dir, subdir, file_name)
-                        if subdir not in self._except_types:
-                            os.makedirs(os.path.join(
-                                self._base_file_dir, subdir), exist_ok=True)
-                            result = self.__download_schedule(
-                                url_file, path_to_file)
+                        if subdir in self._except_types:
+                            continue
+                        os.makedirs(os.path.join(
+                            self._base_file_dir, subdir), exist_ok=True)
+                        result = self.__download_schedule(
+                            url_file, path_to_file)
 
-                            count_file += 1
-                            progress_percentage \
+                        count_file += 1
+                        progress_percentage \
                                 = count_file / progress_all * 100
 
-                            if result:
-                                self._logger.info(
-                                    'Download : {0} -- {1}'.format(
-                                        path_to_file,
-                                        progress_percentage))
-                            else:
-                                self._logger.info(
-                                    'Skp : {0} -- {1}'.format(
-                                        path_to_file,
-                                        progress_percentage))
+                        if result:
+                            self._logger.info(
+                                'Download : {0} -- {1}'.format(
+                                    path_to_file,
+                                    progress_percentage))
                         else:
-                            continue
+                            self._logger.info(
+                                'Skp : {0} -- {1}'.format(
+                                    path_to_file,
+                                    progress_percentage))
                     else:
                         count_file += 1
 
                 except Exception as ex:
-                    self._logger.error(f'[{url_file}] message:' + str(ex))
+                    self._logger.error(f'[{url_file}] message:{str(ex)}')
 
         if college_page_source is not None:
             self.__download_college(college_page_source)

@@ -60,25 +60,20 @@ async def start_parsing():
     # директория, в которой хранятся excel документы
     xlsx_dir = 'documents/semester'
     college_dir = 'documents/college'
-    
+
     schedule_updates = []
-    
+
     for path, _, files in os.walk(xlsx_dir):
         for file_name in files:
             if actual_file not in file_name:
                 path_to_file = os.path.join(path, file_name)
                 file_extension = os.path.splitext(path_to_file)[1]
-                if file_extension == '.pdf':
-                    pass
-                    # pdf_parser = PDFParser(path_to_file,
-                    #                        path_to_error_log='pdf_parser.log')
-                    # pdf_parser.parse()
-                else:
+                if file_extension != '.pdf':
                     excel_parser = ExcelParser(await get_database(), path_to_file, 'semester', ExcelFormatter(),
                                             path_to_error_log='excel_parser.log')
                     groups = excel_parser.parse()
                     schedule_updates.append(ScheduleUpdateModel(groups=groups, updated_at=ScheduleUtils.now_date()))
-                    
+
     for path, _, files in os.walk(college_dir):
         for file_name in files:
             if actual_file not in file_name:
