@@ -1,6 +1,4 @@
 requests
-beautifulsoup4==4.9.3
-openpyxl==3.0.7
 urllib3==1.26.6
 xlrd==1.2.0
 pymongo==3.11.4
@@ -13,5 +11,5 @@ config
 pdfplumber==0.5.28
 pandas
 python-dotenv
-selenium
 pytz
+git+https://github.com/mirea-ninja/rtu-schedule-parser@main

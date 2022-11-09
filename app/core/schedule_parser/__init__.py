@@ -50,36 +50,27 @@ async def start_parsing():
     from .college_formatter import CollegeFormatter
     from app.database.database import get_database
 
-    downloader = Downloader(
-        path_to_error_log='downloader.log', base_file_dir='documents/')
-    downloader.run()
+    downloader = Downloader(base_file_dir='documents/')
+    files_path = downloader.run()
 
     # '_LATEST' означает, что парсинг этого файла проводить не нужно
     actual_file = '_LATEST'
 
-    # директория, в которой хранятся excel документы
-    xlsx_dir = 'documents/semester'
     college_dir = 'documents/college'
 
     schedule_updates = []
 
-    for path, _, files in os.walk(xlsx_dir):
-        for file_name in files:
-            if actual_file not in file_name:
-                path_to_file = os.path.join(path, file_name)
-                file_extension = os.path.splitext(path_to_file)[1]
-                if file_extension != '.pdf':
-                    excel_parser = ExcelParser(await get_database(), path_to_file, 'semester', ExcelFormatter(),
-                                            path_to_error_log='excel_parser.log')
-                    groups = excel_parser.parse()
-                    schedule_updates.append(ScheduleUpdateModel(groups=groups, updated_at=ScheduleUtils.now_date()))
+    for file_path in files_path:
+        if actual_file not in file_path:
+            file_extension = os.path.splitext(file_path)[1]
+            if file_extension != '.pdf':
+                excel_parser = ExcelParser(await get_database(), file_path, 'semester', ExcelFormatter(),
+                                           path_to_error_log='excel_parser.log')
+                groups = excel_parser.parse()
+                schedule_updates.append(ScheduleUpdateModel(groups=groups, updated_at=ScheduleUtils.now_date()))
 
-    for path, _, files in os.walk(college_dir):
-        for file_name in files:
-            if actual_file not in file_name:
-                path_to_file = os.path.join(path, file_name)
-                college_parser = CollegeParser(await get_database(),
-                                            path_to_file, CollegeFormatter(), path_to_error_log='excel_parser.log')
+            elif college_dir in file_path:
+                college_parser = CollegeParser(await get_database(), file_path, CollegeFormatter())
                 groups = college_parser.parse()
                 schedule_updates.append(ScheduleUpdateModel(groups=groups, updated_at=ScheduleUtils.now_date()))
 

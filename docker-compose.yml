@@ -13,8 +13,6 @@ services:
     volumes: 
       - mongodb_volume:/data/db
   api:
-    privileged: true
-    shm_size: 2g
     image: mireaninja/schedule_api
   refresh_invoker:
     image: mireaninja/refresh_invoker
