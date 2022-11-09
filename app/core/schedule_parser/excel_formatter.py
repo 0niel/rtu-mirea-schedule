@@ -144,7 +144,7 @@ class ExcelFormatter(Formatter):
                 length = len(found)
                 if length > 1:
                     for i in range(1, length):
-                        prev_found_pos = found[i-1].span()
+                        prev_found_pos = found[i - 1].span()
                         current_found_pos = found[i].span()
                         is_last_elem = i + 1 > length - 1
                         # если конец предыдущей позиции не совпадает с началом текущей
@@ -172,7 +172,7 @@ class ExcelFormatter(Formatter):
     def __fix_typos(self, names: str) -> str:
         """Исправление ошибок и опечаток в документе"""
         names = re.sub(r"деятельность\s*деятельность", "деятельность", names)
-        names = re.sub( r"^\s*Военная\s*$", "Военная подготовка", names, flags=re.MULTILINE)
+        names = re.sub(r"^\s*Военная\s*$", "Военная подготовка", names, flags=re.MULTILINE)
         names = re.sub(r"^\s*подготовка\s*$", "Военная подготовка", names, flags=re.MULTILINE)
         names = re.sub(r"^((\s*\d\s*п[/\\]?г,*){2})$", "", names, flags=re.MULTILINE)
         # replace \n to space
@@ -182,7 +182,7 @@ class ExcelFormatter(Formatter):
 
     def get_rooms(self, rooms: str):
         re_rooms = r'\(.*\)'
-        if re.search(re_rooms, rooms) is None:      
+        if re.search(re_rooms, rooms) is None:
             for pattern in self.notes_dict:
                 if regex_result := re.findall(pattern, rooms, flags=re.A):
                     rooms = rooms.replace('  ', '').replace(
@@ -193,7 +193,6 @@ class ExcelFormatter(Formatter):
                         rooms,
                         flags=re.A,
                     )
-
 
         splitted_rooms = re.split(r' {2,}|\n', rooms)
         return [room for room in splitted_rooms if room != '']
@@ -305,7 +304,7 @@ class ExcelFormatter(Formatter):
             lesson = lesson.lower()
 
             include_weeks = \
-                    r'(\b(\d+[-, ]*)+)((н|нед)?(?![.\s,\-\d]*(?:подгруппа|подгруп|подгр|п\/г|группа|гр))(\.|\b))'
+                r'(\b(\d+[-, ]*)+)((н|нед)?(?![.\s,\-\d]*(?:подгруппа|подгруп|подгр|п\/г|группа|гр))(\.|\b))'
             exclude_weeks = r'(\b(кр|кроме)(\.|\b)\s*)' + include_weeks
 
             exclude_weeks_substr = re.search(exclude_weeks, lesson)
@@ -315,7 +314,6 @@ class ExcelFormatter(Formatter):
                 '' if exclude_weeks_substr is None else exclude_weeks_substr[4]
             )
 
-
             # необходимо исключить недели исключения из строки, чтобы недели
             # включения не пересекались с ними при вызове метода поиска
             lesson = re.sub(exclude_weeks, "", lesson)
@@ -323,7 +321,6 @@ class ExcelFormatter(Formatter):
             incldue_weeks_substr = (
                 '' if incldue_weeks_substr is None else incldue_weeks_substr[1]
             )
-
 
             # удаляем лишние пробелы слева и справа
             incldue_weeks_substr = incldue_weeks_substr.strip()
@@ -376,7 +373,7 @@ class ExcelFormatter(Formatter):
             remove_exclude = r'\W*(?:кр|кроме)(?:\.|\b)'
             # удаления слов включения недель, при этом игнорирование подгрупп
             remove_weeks = numbers + \
-                    r'\s*(?:(?:нед|н)|\W)(?![.\s\d,-]*(?:подгруппа|подгруп|подгр|п\/г|группа|гр))[.\s]*'
+                           r'\s*(?:(?:нед|н)|\W)(?![.\s\d,-]*(?:подгруппа|подгруп|подгр|п\/г|группа|гр))[.\s]*'
             # удаление типа проводимого предмета
             remove_types = r'(?:\b(лк|пр|лек|лаб)\b)?'
             # удаление ненужных символов в начале строки
@@ -414,12 +411,13 @@ class ExcelFormatter(Formatter):
         splitted_types = re.split(r' {2,}|\n|,', cell)
         lesson_types = [lesson_type.strip() for lesson_type in splitted_types if lesson_type != '']
         for i in range(len(lesson_types)):
-            if lesson_types[i] == 'Л':
+            if lesson_types[i].upper() == 'Л':
                 lesson_types[i] = 'лек'
-            elif lesson_types[i] == 'П':
+            elif lesson_types[i].upper() == 'П':
                 lesson_types[i] = 'пр'
-            elif lesson_types[i] == 'ЛБ':
+            elif lesson_types[i].upper() == 'ЛБ':
                 lesson_types[i] = 'лаб'
-            elif lesson_types[i] == 'СР':
+            elif lesson_types[i].upper() == 'СР':
                 lesson_types[i] = 'с/р'
-        return lesson_types
+
+        return [lesson_type.lower() for lesson_type in lesson_types if lesson_type != '']
