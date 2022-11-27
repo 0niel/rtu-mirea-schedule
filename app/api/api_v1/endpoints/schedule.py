@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, Path
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException
-from starlette.status import HTTP_404_NOT_FOUND
+from starlette.status import HTTP_404_NOT_FOUND, HTTP_204_NO_CONTENT
 from app.core.schedule_utils import ScheduleUtils
 
 from app.database.database import AsyncIOMotorClient, get_database
@@ -65,6 +65,12 @@ async def groups_list(db: AsyncIOMotorClient = Depends(get_database)):
         raise HTTPException(
             status_code=HTTP_404_NOT_FOUND,
             detail="Groups not found",
+        )
+
+    if len(groups) == 0:
+        raise HTTPException(
+            status_code=HTTP_204_NO_CONTENT,
+            detail="Groups are empty. Maybe schedule is not parsed yet",
         )
 
     return GroupsListResponse(groups=groups, count=len(groups))
