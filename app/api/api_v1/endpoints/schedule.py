@@ -69,7 +69,7 @@ async def groups_list(db: AsyncIOMotorClient = Depends(get_database)):
 
     if len(groups) == 0:
         raise HTTPException(
-            status_code=HTTP_204_NO_CONTENT,
+            status_code=HTTP_404_NOT_FOUND,
             detail="Groups are empty. Maybe schedule is not parsed yet",
         )
 
