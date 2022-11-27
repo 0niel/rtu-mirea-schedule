@@ -1,12 +1,12 @@
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.9
 
-RUN pip install --upgrade pip
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 COPY . /app
 
-WORKDIR /
+RUN pip install --upgrade pip && pip install -r requirements.txt
+COPY requirements.txt requirements.txt
 
 EXPOSE 5000
 
