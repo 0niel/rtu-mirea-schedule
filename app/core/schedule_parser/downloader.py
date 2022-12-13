@@ -4,6 +4,7 @@
 """
 from . import setup_logger
 from rtu_schedule_parser.downloader import ScheduleDownloader
+from rtu_schedule_parser.constants import ScheduleType
 
 
 class Downloader:
@@ -22,7 +23,7 @@ class Downloader:
         # Initialize downloader with default directory to save files
         downloader = ScheduleDownloader()
         # Get documents for specified institute and degree
-        all_docs = downloader.get_documents()
+        all_docs = downloader.get_documents(specific_schedule_types={ScheduleType.SEMESTER})
 
         # Download only if they are not downloaded yet.
         downloaded = downloader.download_all(all_docs)
