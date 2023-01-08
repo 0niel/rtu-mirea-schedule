@@ -17,22 +17,14 @@ services:
       - --accesslog
       - --log
       - --api
-    deploy:
-      labels:
-        - traefik.enable=true
-        - traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https
-        - traefik.http.middlewares.traefik-https-redirect.redirectscheme.permanent=true
-        - traefik.http.routers.traefik-proxy-http.rule=Host(`${DOMAIN?Variable not set}`) || Host(`www.${DOMAIN?Variable not set}`)
-        - traefik.http.routers.traefik-proxy-http.entrypoints=http
-        - traefik.http.routers.traefik-proxy-https.rule=Host(`${DOMAIN?Variable not set}`) || Host(`www.${DOMAIN?Variable not set}`)
-        - traefik.http.routers.traefik-proxy-https.entrypoints=https
-        - traefik.http.routers.traefik-proxy-https.tls=true
-        - traefik.http.routers.traefik-proxy-https.tls.certresolver=le
-        - traefik.http.services.traefik-proxy.loadbalancer.server.port=80
-        - traefik.http.middlewares.traefik-www-redirect.redirectregex.regex=^https?://(www.)?(${DOMAIN?Variable not set})/(.*)
-        - traefik.http.middlewares.traefik-www-redirect.redirectregex.replacement=https://${DOMAIN?Variable not set}/$${3}
-        - traefik.http.routers.traefik-proxy-https.middlewares=traefik-www-redirect
-        - traefik.http.routers.traefik-proxy-http.middlewares=traefik-www-redirect,traefik-https-redirect
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.tls=true"
+      - "traefik.http.routers.traefik.entrypoints=http,https"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.tls.certresolver=le"
+      - "traefik.http.routers.traefik.rule=Host(`${DOMAIN?Variable not set}`)"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
 
   mongodb:
     image: mongo:latest
@@ -63,19 +55,20 @@ services:
     environment:
         DEBUG: ${DEBUG-false}
         MONGODB_URL: mongodb://mongodb:27017
-        ENV: development
-    deploy:
-      labels:
-        - traefik.enable=true
-        - traefik.http.routers.traefik-backend-http.rule=PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`)
-        - traefik.http.services.traefik-backend.loadbalancer.server.port=5000
-        - traefik.http.routers.traefik-backend-http.entrypoints=http
-        - traefik.http.routers.traefik-backend-http.middlewares=traefik-https-redirect
-        - traefik.http.routers.traefik-backend-https.rule=PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`)
-        - traefik.http.routers.traefik-backend-https.entrypoints=https
-        - traefik.http.routers.traefik-backend-https.tls=true
-        - traefik.http.routers.traefik-backend-https.tls.certresolver=le
-        - traefik.http.routers.traefik-backend-https.middlewares=traefik-https-redirect
+        ENV: ${ENV-production}
+        DOMAIN: ${DOMAIN-schedule.mirea.ninja}
+    labels:
+      - traefik.enable=true
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
+      - traefik.http.routers.backend.middlewares=redirect-to-https
+      - traefik.http.routers.backend.entrypoints=http
+      - traefik.http.routers.backend.rule=Host(`${DOMAIN?Variable not set}`)
+      - traefik.http.routers.backend-https.rule=Host(`${DOMAIN?Variable not set}`)
+      - traefik.http.routers.backend-https.tls=true
+      - traefik.http.routers.backend-https.tls.certresolver=le
+      - traefik.http.routers.backend-https.entrypoints=https
+      - traefik.http.services.backend-service.loadbalancer.server.port=5000
 
 volumes:
   mongodb_data:
