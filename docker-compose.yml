@@ -1,21 +1,81 @@
-version: '3.8'
+version: "3.9"
 
 services:
+  proxy:
+    image: traefik:v2.9
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./etc/traefik.yml:/traefik.yml:ro
+      - ./etc/acme.json:/acme.json
+    command:
+      - --providers.docker
+      - --providers.docker.exposedbydefault=false
+      - --accesslog
+      - --log
+      - --api
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https
+        - traefik.http.middlewares.traefik-https-redirect.redirectscheme.permanent=true
+        - traefik.http.routers.traefik-proxy-http.rule=Host(`${DOMAIN?Variable not set}`) || Host(`www.${DOMAIN?Variable not set}`)
+        - traefik.http.routers.traefik-proxy-http.entrypoints=http
+        - traefik.http.routers.traefik-proxy-https.rule=Host(`${DOMAIN?Variable not set}`) || Host(`www.${DOMAIN?Variable not set}`)
+        - traefik.http.routers.traefik-proxy-https.entrypoints=https
+        - traefik.http.routers.traefik-proxy-https.tls=true
+        - traefik.http.routers.traefik-proxy-https.tls.certresolver=le
+        - traefik.http.services.traefik-proxy.loadbalancer.server.port=80
+        - traefik.http.middlewares.traefik-www-redirect.redirectregex.regex=^https?://(www.)?(${DOMAIN?Variable not set})/(.*)
+        - traefik.http.middlewares.traefik-www-redirect.redirectregex.replacement=https://${DOMAIN?Variable not set}/$${3}
+        - traefik.http.routers.traefik-proxy-https.middlewares=traefik-www-redirect
+        - traefik.http.routers.traefik-proxy-http.middlewares=traefik-www-redirect,traefik-https-redirect
+
   mongodb:
     image: mongo:latest
-    container_name: mongodb
     hostname: mongodb
-    ports:
-      - "27017:27017"
+    container_name: mongodb
     volumes:
-      - mongodb_volume:/data/db
-  api:
-    build: ./app
-    ports:
-    - "5000:5000"
+      - mongodb_data:/data/db
+    deploy:
+      labels:
+        - traefik.enable=false
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  backend:
+    build:
+      context: .
+      args:
+        INSTALL_DEV: ${INSTALL_DEV-false}
+    depends_on:
+      - mongodb
+    volumes:
+      - ./docs:/app/docs # schedule docs
     environment:
-    - SECRET_REFRESH_KEY=
-    - MONGODB_URL=mongodb://mongodb:27017/
+        DEBUG: ${DEBUG-false}
+        MONGODB_URL: mongodb://mongodb:27017
+        ENV: development
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.traefik-backend-http.rule=PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`)
+        - traefik.http.services.traefik-backend.loadbalancer.server.port=5000
+        - traefik.http.routers.traefik-backend-http.entrypoints=http
+        - traefik.http.routers.traefik-backend-http.middlewares=traefik-https-redirect
+        - traefik.http.routers.traefik-backend-https.rule=PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`)
+        - traefik.http.routers.traefik-backend-https.entrypoints=https
+        - traefik.http.routers.traefik-backend-https.tls=true
+        - traefik.http.routers.traefik-backend-https.tls.certresolver=le
+        - traefik.http.routers.traefik-backend-https.middlewares=traefik-https-redirect
 
 volumes:
-  mongodb_volume:
+  mongodb_data:

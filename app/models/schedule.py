@@ -27,7 +27,7 @@ class ScheduleLessonsModel(BaseModel):
     lessons: List[List[LessonModel]]
 
 
-class ScheduleByWeekdaysModel(BaseModel):
+class ScheduleByWeekdaysModelResponse(BaseModel):
     monday: ScheduleLessonsModel = Field(..., alias="1", title="monday")
     tuesday: ScheduleLessonsModel = Field(..., alias="2", title="tuesday")
     wednesday: ScheduleLessonsModel = Field(..., alias="3", title="wednesday")
@@ -36,9 +36,18 @@ class ScheduleByWeekdaysModel(BaseModel):
     saturday: ScheduleLessonsModel = Field(..., alias="6", title="saturday")
 
 
+class ScheduleByWeekdaysModel(BaseModel):
+    monday: ScheduleLessonsModel
+    tuesday: ScheduleLessonsModel
+    wednesday: ScheduleLessonsModel
+    thursday: ScheduleLessonsModel
+    friday: ScheduleLessonsModel
+    saturday: ScheduleLessonsModel
+
+
 class ScheduleModel(BaseModel):
     group: str
-    schedule: ScheduleByWeekdaysModel
+    schedule: ScheduleByWeekdaysModelResponse
 
 
 class TeacherLessonModel(BaseModel):
@@ -46,6 +55,16 @@ class TeacherLessonModel(BaseModel):
     weekday: int
     lesson_number: int
     lesson: LessonModel
+
+
+class RoomLessonModel(BaseModel):
+    room: str
+    weekday: int
+    lesson: LessonModel
+
+
+class RoomScheduleModel(BaseModel):
+    schedules: List[RoomLessonModel]
 
 
 class TeacherSchedulesModelResponse(BaseModel):

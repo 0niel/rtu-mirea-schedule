@@ -136,5 +136,7 @@ migrations/
 /output
 /xls
 *.db
+*.xls
+*.xlsx
 
 stack.yml

@@ -7,15 +7,24 @@ from starlette.status import HTTP_404_NOT_FOUND
 
 from app.core.config import SECRET_REFRESH_KEY
 from app.core.schedule_utils import ScheduleUtils
-from app.crud.schedule import (find_teacher, get_all_schedule_updates,
-                               get_full_schedule, get_groups, get_groups_stats,
-                               get_schedule_update_by_group,
-                               update_group_stats)
+from app.crud.schedule import (
+    find_room,
+    find_teacher,
+    get_full_schedule,
+    get_groups,
+    get_groups_stats,
+    update_group_stats,
+)
 from app.database.database import AsyncIOMotorClient, get_database
-from app.models.schedule import (GroupsListResponse, GroupStatsModel,
-                                 ScheduleModel, ScheduleUpdateModel,
-                                 TeacherSchedulesModelResponse,
-                                 WeekModelResponse)
+from app.models.schedule import (
+    GroupsListResponse,
+    GroupStatsModel,
+    RoomScheduleModel,
+    ScheduleModel,
+
+    TeacherSchedulesModelResponse,
+    WeekModelResponse,
+)
 from app.schedule_parser.excel import parse_schedule
 
 router = APIRouter()
@@ -114,38 +123,23 @@ async def teacher_schedule(
 
 
 @router.get(
-    "/schedule/update/{group}",
-    response_description="Get the schedule update date for the group",
-    response_model=ScheduleUpdateModel,
+    "/schedule/room/{room_name}",
+    response_description="Find room schedule by room name",
+    response_model=RoomScheduleModel,
 )
-async def group_schedule_update(
-    group: str = Path(...), db: AsyncIOMotorClient = Depends(get_database)
+async def room_schedule(
+    room_name: str = Path(...), db: AsyncIOMotorClient = Depends(get_database)
 ):
-    update = await get_schedule_update_by_group(db, group)
+    schedule = await find_room(db, room_name)
 
-    if not update:
+    if not schedule:
         raise HTTPException(
             status_code=HTTP_404_NOT_FOUND,
-            detail=f"Schedule updates for {group} not found",
+            detail=f"Room with name {room_name} not found",
         )
 
-    return update
-
-
-@router.get(
-    "/schedule/updates/",
-    response_description="Get a list of schedule updates for all groups",
-    response_model=List[ScheduleUpdateModel],
-)
-async def group_schedule_update(db: AsyncIOMotorClient = Depends(get_database)):
-    updates = await get_all_schedule_updates(db)
-
-    if not updates:
-        raise HTTPException(
-            status_code=HTTP_404_NOT_FOUND, detail="Schedule updates not found"
-        )
-
-    return updates
+    return schedule
+    
 
 
 @router.get(
