@@ -14,8 +14,7 @@ from rtu_schedule_parser.downloader import ScheduleDownloader
 from rtu_schedule_parser.schedule import LessonEmpty, LessonsSchedule
 
 from ..crud.schedule import save_schedule
-from ..models.schedule import (LessonModel, ScheduleByWeekdaysModel,
-                               ScheduleLessonsModel)
+from ..models.schedule import LessonModel, ScheduleByWeekdaysModel, ScheduleLessonsModel
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -121,15 +120,18 @@ def parse_schedule(conn: AsyncIOMotorClient) -> None:
                 lessons_by_weekdays = defaultdict(list)
 
                 for lesson in lessons:
-                    weekday = lesson.weekday
+                    weekday = lesson.weekday.value[0]
 
                     if type(lesson) is not LessonEmpty:
                         room = lesson.room
-                        rooms = [
-                            f"{room.name} ({room.campus.short_name})"
-                            if room.campus is not None
-                            else room.name
-                        ]
+                        if room:
+                            room = [
+                                f"{room.name} ({room.campus.short_name})"
+                                if room.campus is not None
+                                else room.name
+                            ]
+                        else:
+                            room = []
 
                         name = lesson.name
 
@@ -143,7 +145,7 @@ def parse_schedule(conn: AsyncIOMotorClient) -> None:
                             time_end=lesson.time_end.strftime("%H:%M"),
                             types=lesson.type.value if lesson.type else "",
                             teachers=lesson.teachers,
-                            rooms=rooms,
+                            rooms=room,
                         )
 
                     lessons_by_weekdays[str(weekday)].append(lesson)
@@ -154,13 +156,26 @@ def parse_schedule(conn: AsyncIOMotorClient) -> None:
                         list(g) for k, g in groupby(lessons, lambda x: x.time_start)
                     ]
 
+                # Удаляем пустые пары (LessonEmpty), конвертируем в ScheduleLessonsModel
+                for weekday, lessons in lessons_by_weekdays.items():
+                    lessons_by_weekdays[weekday] = ScheduleLessonsModel(
+                        lessons=[
+                            [
+                                lesson
+                                for lesson in lessons_by_weekday
+                                if type(lesson) is not LessonEmpty
+                            ]
+                            for lessons_by_weekday in lessons
+                        ]
+                    )
+
                 by_weekdays = ScheduleByWeekdaysModel(
-                    monday=ScheduleLessonsModel(lessons=lessons_by_weekdays["1"]),
-                    tuesday=ScheduleLessonsModel(lessons=lessons_by_weekdays["2"]),
-                    wednesday=ScheduleLessonsModel(lessons=lessons_by_weekdays["3"]),
-                    thursday=ScheduleLessonsModel(lessons=lessons_by_weekdays["4"]),
-                    friday=ScheduleLessonsModel(lessons=lessons_by_weekdays["5"]),
-                    saturday=ScheduleLessonsModel(lessons=lessons_by_weekdays["6"]),
+                    monday=lessons_by_weekdays["1"],
+                    tuesday=lessons_by_weekdays["2"],
+                    wednesday=lessons_by_weekdays["3"],
+                    thursday=lessons_by_weekdays["4"],
+                    friday=lessons_by_weekdays["5"],
+                    saturday=lessons_by_weekdays["6"],
                 )
 
                 save_schedule(conn, schedule.group, by_weekdays)
