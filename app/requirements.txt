@@ -1,8 +1,6 @@
 requests
 urllib3==1.26.6
-xlrd==1.2.0
 pymongo==3.11.4
-motor==2.4.0
 uvicorn==0.14.0
 fastapi==0.66.0
 pydantic==1.8.2

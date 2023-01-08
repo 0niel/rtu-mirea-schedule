@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from .database.database_connection import connect_to_mongo
-from .database.database_connection import close_mongo_connection
 from .api.api_v1.router import router as api_router
 from .core.config import API_V1_PREFIX
+from .database.database_connection import (close_mongo_connection,
+                                           connect_to_mongo)
 
 
 def get_application() -> FastAPI:
