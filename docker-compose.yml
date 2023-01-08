@@ -17,6 +17,8 @@ services:
       - --accesslog
       - --log
       - --api
+    env_file:
+      - .env
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.tls=true"
@@ -52,6 +54,8 @@ services:
       - mongodb
     volumes:
       - ./docs:/app/docs # schedule docs
+    env_file:
+      - .env
     environment:
         DEBUG: ${DEBUG-false}
         MONGODB_URL: mongodb://mongodb:27017
