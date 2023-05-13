@@ -1,33 +1,6 @@
 version: "3.9"
 
 services:
-  proxy:
-    image: traefik:v2.9
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./etc/traefik.yml:/traefik.yml:ro
-      - ./etc/acme.json:/acme.json
-    command:
-      - --providers.docker
-      - --providers.docker.exposedbydefault=false
-      - --accesslog
-      - --log
-      - --api
-    env_file:
-      - .env
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.traefik.tls=true"
-      - "traefik.http.routers.traefik.entrypoints=http,https"
-      - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.routers.traefik.tls.certresolver=le"
-      - "traefik.http.routers.traefik.rule=Host(`${DOMAIN?Variable not set}`)"
-      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
-
   mongodb:
     image: mongo:latest
     hostname: mongodb
@@ -56,23 +29,13 @@ services:
       - ./docs:/app/docs # schedule docs
     env_file:
       - .env
+    ports:
+      - "5000:5000"
     environment:
         DEBUG: ${DEBUG-false}
         MONGODB_URL: mongodb://mongodb:27017
         ENV: ${ENV-production}
         DOMAIN: ${DOMAIN-schedule.mirea.ninja}
-    labels:
-      - traefik.enable=true
-      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
-      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
-      - traefik.http.routers.backend.middlewares=redirect-to-https
-      - traefik.http.routers.backend.entrypoints=http
-      - traefik.http.routers.backend.rule=Host(`${DOMAIN?Variable not set}`)
-      - traefik.http.routers.backend-https.rule=Host(`${DOMAIN?Variable not set}`)
-      - traefik.http.routers.backend-https.tls=true
-      - traefik.http.routers.backend-https.tls.certresolver=le
-      - traefik.http.routers.backend-https.entrypoints=https
-      - traefik.http.services.backend-service.loadbalancer.server.port=5000
 
 volumes:
   mongodb_data:

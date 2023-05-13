@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+  proxy:
+    image: jwilder/nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - conf:/etc/nginx/conf.d
+      - vhost:/etc/nginx/vhost.d
+      - dhparam:/etc/nginx/dhparam
+      - certs:/etc/nginx/certs:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - acme:/etc/acme.sh
+    networks:
+      - proxy
+    restart: always
+
+  letsencrypt:
+    image: nginxproxy/acme-companion:latest
+    volumes_from:
+      - proxy
+    volumes:
+      - certs:/etc/nginx/certs:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - acme:/etc/acme.sh
+    restart: always
+
+  mongodb:
+    image: mongo:latest
+    hostname: mongodb
+    container_name: mongodb
+    volumes:
+      - mongodb_data:/data/db
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    networks:
+      - default
+
+  backend:
+    build:
+      context: .
+      args:
+        INSTALL_DEV: ${INSTALL_DEV-true}
+    command: /start-reload.sh
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - ./docs:/app/docs # schedule docs
+    environment:
+      VIRTUAL_HOST: ${DOMAIN-schedule.mirea.ninja}
+      DEBUG: false
+      MONGODB_URL: mongodb://mongodb:27017
+      ENV: production
+      DOMAIN: ${DOMAIN-schedule.mirea.ninja}
+      VIRTUAL_PORT: 5000
+    restart: always
+    networks:
+      - proxy
+
+volumes:
+  mongodb_data:
+  conf:
+  vhost:
+  dhparam:
+  certs:
+  acme:
+
+networks:
+  proxy:
+    external:
+      true
