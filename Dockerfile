@@ -7,7 +7,11 @@ COPY requirements.txt /app/
 
 WORKDIR /app/
 
-RUN pip install --no-cache-dir --upgrade -r requirements.txt
+RUN apt-get update && \
+    apt-get install -y python3-venv && \
+    pip install --no-cache-dir --upgrade pip && \
+    pip cache remove rtu-schedule-parser && \
+    pip install --no-cache-dir -r requirements.txt
 
 COPY /app/ /app/app/
 
