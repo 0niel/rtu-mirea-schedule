@@ -7,24 +7,14 @@ from starlette.status import HTTP_404_NOT_FOUND
 
 from app.core.config import SECRET_REFRESH_KEY
 from app.core.schedule_utils import ScheduleUtils
-from app.crud.schedule import (
-    find_room,
-    find_teacher,
-    get_full_schedule,
-    get_groups,
-    get_groups_stats,
-    update_group_stats,
-)
+from app.crud.schedule import (find_room, find_teacher, get_full_schedule,
+                               get_groups, get_groups_stats,
+                               update_group_stats)
 from app.database.database import AsyncIOMotorClient, get_database
-from app.models.schedule import (
-    GroupsListResponse,
-    GroupStatsModel,
-    RoomScheduleModel,
-    ScheduleModel,
-
-    TeacherSchedulesModelResponse,
-    WeekModelResponse,
-)
+from app.models.schedule import (GroupsListResponse, GroupStatsModel,
+                                 RoomScheduleModel, ScheduleModel,
+                                 TeacherSchedulesModelResponse,
+                                 WeekModelResponse)
 from app.schedule_parser.excel import parse_schedule
 
 router = APIRouter()
@@ -35,16 +25,18 @@ router = APIRouter()
     description="Refresh shedule",
     response_description="Return 'ok' after updating",
 )
-def refresh(secret_key: str = None, db: AsyncIOMotorClient = Depends(get_database)):
+async def refresh(
+    secret_key: str = None, db: AsyncIOMotorClient = Depends(get_database)
+):
     if (
         SECRET_REFRESH_KEY is None
         or SECRET_REFRESH_KEY == ""
         or SECRET_REFRESH_KEY == "None"
     ):
-        parse_schedule(db)
+        await parse_schedule(db)
         return JSONResponse({"status": "ok"})
     elif secret_key == SECRET_REFRESH_KEY:
-        parse_schedule(db)
+        await parse_schedule(db)
         return JSONResponse({"status": "ok"})
     return JSONResponse({"status": "Invalid secret API key"})
 
@@ -139,7 +131,6 @@ async def room_schedule(
         )
 
     return schedule
-    
 
 
 @router.get(

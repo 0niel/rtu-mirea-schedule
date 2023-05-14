@@ -1,30 +1,24 @@
+import asyncio
 from typing import List
 
-from app.core.config import (
-    DATABASE_NAME,
-    SCHEDULE_COLLECTION_NAME,
-    SCHEDULE_GROUPS_STATS,
-    SCHEDULE_UPDATES_COLLECTION,
-)
+from app.core.config import (DATABASE_NAME, SCHEDULE_COLLECTION_NAME,
+                             SCHEDULE_GROUPS_STATS,
+                             SCHEDULE_UPDATES_COLLECTION)
 from app.database.database import AsyncIOMotorClient
-from app.models.schedule import (
-    GroupStatsModel,
-    LessonModel,
-    RoomLessonModel,
-    RoomScheduleModel,
-    ScheduleByWeekdaysModelResponse,
-    ScheduleModel,
-    ScheduleUpdateModel,
-    TeacherLessonModel,
-    TeacherSchedulesModelResponse,
-)
+from app.models.schedule import (GroupStatsModel, LessonModel, RoomLessonModel,
+                                 RoomScheduleModel,
+                                 ScheduleByWeekdaysModelResponse,
+                                 ScheduleModel, ScheduleUpdateModel,
+                                 TeacherLessonModel,
+                                 TeacherSchedulesModelResponse)
+
+loop = asyncio.get_event_loop()
 
 
-def save_schedule(
+async def save_schedule(
     conn: AsyncIOMotorClient, group: str, schedule: ScheduleByWeekdaysModelResponse
 ):
-    """Сохранение или обновление расписания группы."""
-    conn[DATABASE_NAME][SCHEDULE_COLLECTION_NAME].update_one(
+    await conn[DATABASE_NAME][SCHEDULE_COLLECTION_NAME].update_one(
         {"group": group},
         {"$set": {"group": group, "schedule": schedule.dict()}},
         upsert=True,
@@ -157,7 +151,6 @@ async def find_teacher(
 
     if result:
         return teacher_schedule
-
 
 
 async def find_room(conn: AsyncIOMotorClient, room_name: str) -> RoomScheduleModel:

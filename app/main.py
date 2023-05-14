@@ -5,8 +5,8 @@ from starlette.middleware.cors import CORSMiddleware
 
 from .api.api_v1.router import router as api_router
 from .core.config import API_V1_PREFIX
-from .database.database_connection import close_mongo_connection, connect_to_mongo
-
+from .database.database_connection import (close_mongo_connection,
+                                           connect_to_mongo)
 
 app = FastAPI(
     title="Schedule API",
