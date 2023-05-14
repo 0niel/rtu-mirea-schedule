@@ -1,7 +1,7 @@
 import datetime
-from tokenize import group
-from pydantic import Field, BaseModel
 from typing import List
+
+from pydantic import BaseModel, Field
 
 
 class WeekModelResponse(BaseModel):
@@ -23,22 +23,31 @@ class LessonModel(BaseModel):
     rooms: List[str]
 
 
-class ScheduleValueModel(BaseModel):
+class ScheduleLessonsModel(BaseModel):
     lessons: List[List[LessonModel]]
 
 
+class ScheduleByWeekdaysModelResponse(BaseModel):
+    monday: ScheduleLessonsModel = Field(..., alias="1", title="monday")
+    tuesday: ScheduleLessonsModel = Field(..., alias="2", title="tuesday")
+    wednesday: ScheduleLessonsModel = Field(..., alias="3", title="wednesday")
+    thursday: ScheduleLessonsModel = Field(..., alias="4", title="thursday")
+    friday: ScheduleLessonsModel = Field(..., alias="5", title="friday")
+    saturday: ScheduleLessonsModel = Field(..., alias="6", title="saturday")
+
+
+class ScheduleByWeekdaysModel(BaseModel):
+    monday: ScheduleLessonsModel
+    tuesday: ScheduleLessonsModel
+    wednesday: ScheduleLessonsModel
+    thursday: ScheduleLessonsModel
+    friday: ScheduleLessonsModel
+    saturday: ScheduleLessonsModel
+
+
 class ScheduleModel(BaseModel):
-    monday: ScheduleValueModel = Field(..., alias='1', title='monday')
-    tuesday: ScheduleValueModel = Field(..., alias='2', title='tuesday')
-    wednesday: ScheduleValueModel = Field(..., alias='3', title='wednesday')
-    thursday: ScheduleValueModel = Field(..., alias='4', title='thursday')
-    friday: ScheduleValueModel = Field(..., alias='5', title='friday')
-    saturday: ScheduleValueModel = Field(..., alias='6', title='saturday')
-
-
-class ScheduleModelResponse(BaseModel):
     group: str
-    schedule: ScheduleModel
+    schedule: ScheduleByWeekdaysModelResponse
 
 
 class TeacherLessonModel(BaseModel):
@@ -46,6 +55,16 @@ class TeacherLessonModel(BaseModel):
     weekday: int
     lesson_number: int
     lesson: LessonModel
+
+
+class RoomLessonModel(BaseModel):
+    room: str
+    weekday: int
+    lesson: LessonModel
+
+
+class RoomScheduleModel(BaseModel):
+    schedules: List[RoomLessonModel]
 
 
 class TeacherSchedulesModelResponse(BaseModel):
