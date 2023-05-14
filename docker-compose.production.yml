@@ -73,7 +73,7 @@ services:
       - .:/app
       - ./cron:/etc/cron.d/my-cron
     environment:
-      API_SECRET_KEY: ${API_SECRET_KEY}
+      SECRET_REFRESH_KEY: ${SECRET_REFRESH_KEY}
     command: [ "sh", "-c", "crond -f -l 8 -L /dev/stdout && tail -f /dev/null" ]
     restart: always
     networks:
