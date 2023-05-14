@@ -1,0 +1,1 @@
+0 * * * * root wget -qO- --no-check-certificate "http://backend:5000/api/refresh?secret_key=$API_SECRET_KEY" >/dev/null 2>&1
