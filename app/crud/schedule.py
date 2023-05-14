@@ -18,10 +18,8 @@ loop = asyncio.get_event_loop()
 async def save_schedule(
     conn: AsyncIOMotorClient, group: str, schedule: ScheduleByWeekdaysModelResponse
 ):
-    await conn[DATABASE_NAME][SCHEDULE_COLLECTION_NAME].update_one(
-        {"group": group},
-        {"$set": {"group": group, "schedule": schedule.dict()}},
-        upsert=True,
+    await conn[DATABASE_NAME][SCHEDULE_COLLECTION_NAME].replace_one(
+        {"group": group}, {"group": group, "schedule": schedule.dict()}, upsert=True
     )
 
 
