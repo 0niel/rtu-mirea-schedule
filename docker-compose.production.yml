@@ -13,6 +13,7 @@ services:
       - certs:/etc/nginx/certs:ro
       - /var/run/docker.sock:/tmp/docker.sock:ro
       - acme:/etc/acme.sh
+      - html:/usr/share/nginx/html
     networks:
       - proxy
     restart: always
@@ -61,11 +62,13 @@ services:
       MONGODB_URL: mongodb://mongodb:27017
       ENV: production
       DOMAIN: ${DOMAIN-schedule.mirea.ninja}
+      LETSENCRYPT_HOST: ${DOMAIN-schedule.mirea.ninja}
       VIRTUAL_PORT: 5000
       PORT: 5000
     restart: always
     networks:
       - proxy
+      - default
 
   cron:
     image: alpine:latest
@@ -86,6 +89,7 @@ volumes:
   dhparam:
   certs:
   acme:
+  html:
 
 networks:
   proxy:
